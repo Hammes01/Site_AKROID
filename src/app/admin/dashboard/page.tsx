@@ -14,7 +14,7 @@ export default async function DashboardPage() {
     .single()
 
   return (
-    <div className="min-h-screen bg-slate-950 p-8 text-white">
+    <div className="p-8 text-white">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-semibold">
           Olá, {profile?.full_name ?? user!.email}
