@@ -1,0 +1,118 @@
+.story {
+  min-height: 300svh;
+  width: 100%;
+  position: relative;
+  background: #0a0a0a;
+  color: #fff;
+  overflow: hidden;
+}
+
+.stage {
+  position: sticky;
+  top: 0;
+  height: 100svh;
+  display: grid;
+  place-items: center;
+  perspective: 1000px;
+}
+
+.glow {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    60% 60% at 50% 40%,
+    rgba(255, 255, 255, 0.08) 0%,
+    transparent 60%
+  );
+  pointer-events: none;
+}
+
+.product {
+  width: min(90vw, 720px);
+  height: auto;
+  transform-origin: center center;
+  will-change: transform;
+  filter: drop-shadow(0 40px 80px rgba(0, 0, 0, 0.5));
+}
+
+.copy {
+  position: absolute;
+  bottom: 12vh;
+  left: 50%;
+  translate: -50% 0;
+  text-align: center;
+  max-width: 60ch;
+  padding: 0 1.5rem;
+  pointer-events: none;
+}
+
+.eyebrow {
+  font-size: clamp(0.7rem, 1.2vw, 0.85rem);
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.6);
+  margin: 0 0 0.75rem;
+  font-weight: 500;
+}
+
+.copy h2 {
+  font-size: clamp(2rem, 5vw, 4rem);
+  line-height: 1.1;
+  font-weight: 700;
+  margin: 0 0 1rem;
+  letter-spacing: -0.02em;
+}
+
+.copy p {
+  font-size: clamp(1rem, 1.8vw, 1.25rem);
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.75);
+  margin: 0;
+  max-width: 48ch;
+  margin-inline: auto;
+}
+
+.progress {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 3px;
+  background: linear-gradient(90deg, #fff, #8b5cf6);
+  transform-origin: left center;
+  transform: scaleX(0);
+  will-change: transform;
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Responsive adjustments */
+@media (max-width: 640px) {
+  .copy {
+    bottom: 10vh;
+  }
+  
+  .product {
+    width: min(95vw, 600px);
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .product,
+  .copy,
+  .progress {
+    animation: none !important;
+    transition: none !important;
+  }
+}
