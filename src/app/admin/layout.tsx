@@ -9,6 +9,7 @@ const NAV_ITEMS = [
   { label: 'Depoimentos', href: '/admin/depoimentos', permission: 'testimonials.read' },
   { label: 'Posts', href: '/admin/posts', permission: 'posts.read' },
   { label: 'Usuários', href: '/admin/usuarios', permission: 'users.manage' },
+  { label: 'Configurações', href: '/admin/configuracoes', permission: 'system.manage' },
 ]
 
 export default async function AdminLayout({
