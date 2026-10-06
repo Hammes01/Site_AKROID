@@ -35,7 +35,7 @@ export default async function HomePage() {
   return (
     <div>
       {/* HERO */}
-        <AnimatedHero videoUrl={(heroSetting?.value as any)?.url} />
+        <AnimatedHero videoUrl={(heroSetting?.value as { url?: string } | null)?.url} />
 
       {/* KITS EM DESTAQUE */}
       {featuredKits && featuredKits.length > 0 && (
