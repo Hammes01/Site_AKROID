@@ -49,18 +49,18 @@ body {
   -webkit-appearance: none;
 }
 
-/* Vidro líquido da barra de navegação do celular. O tom escuro mantém o texto
-   branco legível tanto sobre o vídeo quanto sobre as páginas claras. */
+/* Vidro claro do menu do celular, no estilo dos menus do iPhone. O branco translúcido
+   mantém o texto escuro legível tanto sobre o vídeo quanto sobre as páginas claras. */
 .liquid-glass {
-  position: relative;
-  background: linear-gradient(135deg, rgb(2 6 23 / 0.78), rgb(2 6 23 / 0.68));
-  -webkit-backdrop-filter: blur(22px) saturate(190%);
-  backdrop-filter: blur(22px) saturate(190%);
-  border: 1px solid rgb(255 255 255 / 0.18);
+  background: linear-gradient(145deg, rgb(255 255 255 / 0.74), rgb(255 255 255 / 0.56));
+  -webkit-backdrop-filter: blur(28px) saturate(190%);
+  backdrop-filter: blur(28px) saturate(190%);
+  border: 1px solid rgb(255 255 255 / 0.6);
   box-shadow:
-    inset 0 1px 0 rgb(255 255 255 / 0.32),
-    inset 0 -1px 0 rgb(255 255 255 / 0.06),
-    0 10px 32px rgb(2 6 23 / 0.35);
+    inset 0 1px 1px rgb(255 255 255 / 0.9),
+    inset 0 -1px 1px rgb(255 255 255 / 0.3),
+    0 18px 50px rgb(2 6 23 / 0.28),
+    0 2px 8px rgb(2 6 23 / 0.1);
 }
 
 /* Reflexo de luz na borda superior do vidro */
@@ -69,20 +69,20 @@ body {
   position: absolute;
   inset: 0;
   border-radius: inherit;
-  background: linear-gradient(180deg, rgb(255 255 255 / 0.16), transparent 42%);
+  background: linear-gradient(180deg, rgb(255 255 255 / 0.45), transparent 26%);
   pointer-events: none;
 }
 
-.liquid-glass-active {
-  background: rgb(255 255 255 / 0.17);
+.liquid-glass-current {
+  background: rgb(255 255 255 / 0.55);
   box-shadow:
-    inset 0 1px 0 rgb(255 255 255 / 0.3),
-    0 2px 10px rgb(2 6 23 / 0.25);
+    inset 0 1px 0 rgb(255 255 255 / 0.9),
+    0 1px 4px rgb(2 6 23 / 0.1);
 }
 
-/* Se o navegador não tiver desfoque, o vidro vira uma barra sólida legível */
+/* Se o navegador não tiver desfoque, o vidro vira um painel sólido legível */
 @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
   .liquid-glass {
-    background: rgb(2 6 23 / 0.92);
+    background: rgb(255 255 255 / 0.96);
   }
 }

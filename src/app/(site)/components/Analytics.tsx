@@ -73,7 +73,7 @@ export default function Analytics({
         <div
           role="dialog"
           aria-label="Uso de cookies"
-          className="fixed inset-x-4 bottom-[calc(max(0.75rem,env(safe-area-inset-bottom))+4.5rem)] z-50 rounded-xl border border-slate-200 bg-white p-4 text-sm text-slate-600 shadow-lg md:right-auto md:bottom-4 md:max-w-md"
+          className="fixed inset-x-4 bottom-22 z-50 rounded-xl border border-slate-200 bg-white p-4 text-sm text-slate-600 shadow-lg md:right-auto md:bottom-4 md:max-w-md"
         >
           <p>
             Usamos cookies para entender como o site é usado e melhorar nossos
