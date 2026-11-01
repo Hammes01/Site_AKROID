@@ -61,7 +61,7 @@ function Chapter({
   return (
     <motion.div
       style={{ opacity, y }}
-      className="absolute inset-x-0 bottom-[8svh] mx-auto max-w-6xl px-6 md:top-1/2 md:bottom-auto md:-translate-y-1/2"
+      className="absolute inset-x-0 bottom-24 mx-auto max-w-6xl px-6 md:top-1/2 md:bottom-auto md:-translate-y-1/2"
     >
       <div className="max-w-md">
         <p className="text-sm font-medium text-brand-300">{chapter.eyebrow}</p>

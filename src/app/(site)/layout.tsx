@@ -3,6 +3,7 @@ import Image from 'next/image'
 import { createClient } from '@/lib/supabase/server'
 import { parseSalesConfig } from '@/lib/sales-config'
 import Analytics from './components/Analytics'
+import MobileNav from './components/MobileNav'
 import WhatsAppButton from './components/WhatsAppButton'
 
 const NAV_LINKS = [
@@ -74,7 +75,7 @@ export default async function SiteLayout({
       <main>{children}</main>
 
       <footer className="border-t border-slate-100 bg-brand-50">
-        <div className="mx-auto max-w-6xl px-4 py-10 text-sm text-slate-500">
+        <div className="mx-auto max-w-6xl px-4 pt-10 pb-28 text-sm text-slate-500 md:pb-10">
           <p className="font-medium text-brand-800">
             {org?.trade_name ?? 'AKROID Energia Solar'}
           </p>
@@ -89,7 +90,13 @@ export default async function SiteLayout({
         </div>
       </footer>
 
-      {sales.whatsapp && <WhatsAppButton number={sales.whatsapp} />}
+      <MobileNav whatsapp={sales.whatsapp} />
+      {sales.whatsapp && (
+        <WhatsAppButton
+          number={sales.whatsapp}
+          className="fixed right-6 bottom-6 z-40 hidden h-14 w-14 md:flex"
+        />
+      )}
       <Analytics gaId={sales.gaId} metaPixelId={sales.metaPixelId} />
     </div>
   )
