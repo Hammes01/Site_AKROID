@@ -16,13 +16,24 @@ const NAV_LINKS = [
 ]
 
 // Altura em que o conteúdo é comparado com a barra para escolher as cores
-const HEADER_CENTER_Y = 40
+const HEADER_CENTER_Y = 32
+
+// Rolagem a partir da qual a barra recolhe, e a mínima para desfazer um toque no celular
+const COMPACT_AFTER_Y = 60
+const PEEK_SCROLL_THRESHOLD = 8
+
+const SIZE_TRANSITION = 'transition-all duration-300 ease-out motion-reduce:transition-none'
 
 export type GlassTone = 'light' | 'dark'
 
 export default function SiteHeader() {
   const pathname = usePathname()
   const [tone, setTone] = useState<GlassTone>('light')
+  const [scrolled, setScrolled] = useState(false)
+  const [hovered, setHovered] = useState(false)
+  const [focused, setFocused] = useState(false)
+  const [peeking, setPeeking] = useState(false)
+  const [menuOpen, setMenuOpen] = useState(false)
 
   // Com a barra transparente, texto e botões acompanham o fundo: seções escuras
   // são marcadas com data-dark-section e o restante do site é tratado como claro.
@@ -44,18 +55,53 @@ export default function SiteHeader() {
     }
   }, [pathname])
 
+  // Depois de rolar, a barra recolhe. Volta ao tamanho normal com o mouse em cima,
+  // com o foco do teclado, com um toque no celular ou com o menu aberto.
+  useEffect(() => {
+    let lastY = window.scrollY
+
+    const update = () => {
+      const y = window.scrollY
+      setScrolled(y > COMPACT_AFTER_Y)
+      if (Math.abs(y - lastY) >= PEEK_SCROLL_THRESHOLD) {
+        lastY = y
+        setPeeking(false)
+      }
+    }
+
+    update()
+    window.addEventListener('scroll', update, { passive: true })
+    return () => window.removeEventListener('scroll', update)
+  }, [])
+
   const dark = tone === 'dark'
+  const compact = scrolled && !hovered && !focused && !peeking && !menuOpen
 
   return (
-    <header className="sticky top-0 z-50 px-3 pt-2 md:px-6">
+    // A altura fica reservada aqui, para a página não pular quando a barra muda de tamanho
+    <header
+      onPointerEnter={(event) => {
+        if (event.pointerType === 'mouse') setHovered(true)
+      }}
+      onPointerLeave={() => setHovered(false)}
+      onFocus={(event) => setFocused(event.target.matches(':focus-visible'))}
+      onBlur={() => setFocused(false)}
+      className="sticky top-0 z-50 h-18 px-3 pt-2 md:h-20 md:px-6"
+    >
       <div
         data-tone={tone}
-        className="liquid-glass relative mx-auto flex h-16 max-w-6xl items-center justify-between rounded-2xl pr-2.5 pl-5 transition-colors duration-300 md:h-18 md:pr-3 md:pl-7"
+        data-compact={compact}
+        onClick={() => setPeeking(true)}
+        className={`liquid-glass relative mx-auto flex max-w-6xl items-center justify-between rounded-2xl ${SIZE_TRANSITION} ${
+          compact ? 'h-11 pr-1.5 pl-3 md:pr-2 md:pl-4' : 'h-16 pr-2.5 pl-5 md:h-18 md:pr-3 md:pl-7'
+        }`}
       >
         <Link
           href="/"
           aria-label="AKROID Energia Solar"
-          className="relative block h-14 w-11 shrink-0 md:h-16 md:w-13"
+          className={`relative block shrink-0 ${SIZE_TRANSITION} ${
+            compact ? 'h-9 w-7' : 'h-14 w-11 md:h-16 md:w-13'
+          }`}
         >
           <Image
             src="/logo-nav.png"
@@ -75,13 +121,20 @@ export default function SiteHeader() {
           />
         </Link>
 
-        <nav aria-label="Menu principal" className="relative hidden gap-6 text-sm md:flex">
+        <nav
+          aria-label="Menu principal"
+          className={`relative hidden md:flex ${SIZE_TRANSITION} ${
+            compact ? 'gap-5 text-xs' : 'gap-6 text-sm'
+          }`}
+        >
           {NAV_LINKS.map((link) => (
             <Link
               key={link.href}
               href={link.href}
               className={`transition-colors duration-300 ${
-                dark ? 'text-white/90 hover:text-white' : 'text-slate-800 hover:text-brand-700'
+                dark
+                  ? 'text-white/90 hover:text-brand-300 focus-visible:text-brand-300'
+                  : 'text-slate-800 hover:text-brand-700 focus-visible:text-brand-700'
               }`}
             >
               {link.label}
@@ -92,7 +145,9 @@ export default function SiteHeader() {
         <div className="relative flex items-center gap-2">
           <Link
             href="/contato"
-            className={`rounded-xl border px-4 py-2.5 text-sm font-medium whitespace-nowrap transition-colors duration-300 ${
+            className={`border font-medium whitespace-nowrap ${SIZE_TRANSITION} ${
+              compact ? 'rounded-lg px-3 py-1 text-xs' : 'rounded-xl px-4 py-2.5 text-sm'
+            } ${
               dark
                 ? 'border-white/35 bg-brand-400/30 text-white hover:bg-brand-400/45'
                 : 'border-brand-700/30 bg-brand-500/25 text-brand-900 hover:bg-brand-500/40'
@@ -100,7 +155,7 @@ export default function SiteHeader() {
           >
             Solicitar orçamento
           </Link>
-          <MobileMenu links={NAV_LINKS} tone={tone} />
+          <MobileMenu links={NAV_LINKS} tone={tone} compact={compact} onOpenChange={setMenuOpen} />
         </div>
       </div>
     </header>
