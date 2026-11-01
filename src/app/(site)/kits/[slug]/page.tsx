@@ -11,7 +11,12 @@ interface Product {
 
 interface KitItem {
   quantity: number
-  products: Product[]
+  products: Product | Product[] | null
+}
+
+// O Supabase devolve um objeto em relações muitos-para-um, apesar da tipagem em lista
+function getProduct(item: KitItem) {
+  return Array.isArray(item.products) ? item.products[0] : item.products
 }
 
 interface Kit {
@@ -104,16 +109,19 @@ export default async function KitDetailPage({
             Composição do kit
           </h2>
           <ul className="mt-4 divide-y divide-slate-100 rounded-xl border border-slate-200">
-            {typedItems.map((item: KitItem, i: number) => (
-              <li key={i} className="flex justify-between px-4 py-3 text-sm">
-                <span>
-                  {item.products?.[0]?.name}
-                  {item.products?.[0]?.brand && ` — ${item.products[0].brand}`}
-                  {item.products?.[0]?.model && ` ${item.products[0].model}`}
-                </span>
-                <span className="text-slate-500">Qtd: {item.quantity}</span>
-              </li>
-            ))}
+            {typedItems.map((item: KitItem, i: number) => {
+              const product = getProduct(item)
+              return (
+                <li key={i} className="flex justify-between px-4 py-3 text-sm">
+                  <span>
+                    {product?.name}
+                    {product?.brand && ` — ${product.brand}`}
+                    {product?.model && ` ${product.model}`}
+                  </span>
+                  <span className="text-slate-500">Qtd: {item.quantity}</span>
+                </li>
+              )
+            })}
           </ul>
         </div>
       )}
@@ -126,7 +134,7 @@ export default async function KitDetailPage({
         </p>
         <Link
           href={`/contato?kit=${encodeURIComponent(typedKit.name)}`}
-          className="mt-4 inline-block rounded-full bg-slate-900 px-6 py-3 text-sm font-medium text-white hover:bg-slate-800"
+          className="mt-4 inline-block rounded-full bg-brand-600 px-6 py-3 text-sm font-medium text-white hover:bg-brand-700"
         >
           Solicitar orçamento
         </Link>

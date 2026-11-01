@@ -24,7 +24,7 @@ export default async function LeadsPage() {
 
   const { data: leads } = await supabase
     .from('leads')
-    .select('id, name, whatsapp, city, project_type, status, source, created_at')
+    .select('id, name, whatsapp, city, project_type, monthly_bill, status, source, created_at')
     .order('created_at', { ascending: false })
 
   return (
@@ -39,6 +39,7 @@ export default async function LeadsPage() {
               <th className="px-4 py-3">WhatsApp</th>
               <th className="px-4 py-3">Cidade</th>
               <th className="px-4 py-3">Tipo</th>
+              <th className="px-4 py-3">Conta de luz</th>
               <th className="px-4 py-3">Origem</th>
               <th className="px-4 py-3">Status</th>
               <th className="px-4 py-3">Recebido em</th>
@@ -54,6 +55,11 @@ export default async function LeadsPage() {
                   <td className="px-4 py-3 text-slate-400">{lead.city ?? '—'}</td>
                   <td className="px-4 py-3 text-slate-400 capitalize">
                     {lead.project_type ?? '—'}
+                  </td>
+                  <td className="px-4 py-3 text-slate-400">
+                    {lead.monthly_bill
+                      ? `R$ ${Number(lead.monthly_bill).toLocaleString('pt-BR')}`
+                      : '—'}
                   </td>
                   <td className="px-4 py-3 text-slate-400 capitalize">
                     {lead.source}
@@ -82,7 +88,7 @@ export default async function LeadsPage() {
               ))
             ) : (
               <tr>
-                <td colSpan={8} className="px-4 py-6 text-center text-slate-500">
+                <td colSpan={9}className="px-4 py-6 text-center text-slate-500">
                   Nenhum lead recebido ainda.
                 </td>
               </tr>

@@ -75,6 +75,18 @@ export default async function LeadDetailPage({
               <dd className="capitalize">{lead.project_type ?? '—'}</dd>
             </div>
             <div className="flex justify-between">
+              <dt className="text-slate-500">Conta de luz</dt>
+              <dd>
+                {lead.monthly_bill
+                  ? `R$ ${Number(lead.monthly_bill).toLocaleString('pt-BR')}`
+                  : '—'}
+              </dd>
+            </div>
+            <div className="flex justify-between gap-4">
+              <dt className="text-slate-500">Kit de interesse</dt>
+              <dd className="text-right">{lead.kit_interest ?? '—'}</dd>
+            </div>
+            <div className="flex justify-between">
               <dt className="text-slate-500">Origem</dt>
               <dd className="capitalize">{lead.source}</dd>
             </div>

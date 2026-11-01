@@ -6,6 +6,7 @@ const NAV_ITEMS = [
   { label: 'Kits', href: '/admin/kits', permission: 'kits.read' },
   { label: 'Produtos', href: '/admin/produtos', permission: 'products.read' },
   { label: 'Leads', href: '/admin/leads', permission: 'leads.read' },
+  { label: 'Orçamento', href: '/admin/orcamento', permission: null },
   { label: 'Depoimentos', href: '/admin/depoimentos', permission: 'testimonials.read' },
   { label: 'Posts', href: '/admin/posts', permission: 'posts.read' },
   { label: 'Usuários', href: '/admin/usuarios', permission: 'users.manage' },
