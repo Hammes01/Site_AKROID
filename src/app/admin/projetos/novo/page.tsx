@@ -83,6 +83,34 @@ export default function NovoProjetoPage() {
           </div>
         </div>
 
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className="mb-1 block text-sm text-slate-300">
+              Tipo de inversor
+            </label>
+            <select
+              name="inverter_type"
+              className="w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 outline-none focus:border-slate-500"
+            >
+              <option value="">Selecione...</option>
+              <option value="inversor">Inversor</option>
+              <option value="microinversor">Microinversor</option>
+            </select>
+          </div>
+          <div>
+            <label className="mb-1 block text-sm text-slate-300">
+              Geração real (kWh/mês)
+            </label>
+            <input
+              name="monthly_generation_kwh"
+              type="number"
+              step="0.01"
+              min="0"
+              className="w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 outline-none focus:border-slate-500"
+            />
+          </div>
+        </div>
+
         <div>
           <label className="mb-1 block text-sm text-slate-300">
             Nome do cliente

@@ -62,6 +62,10 @@ export async function createProject(formData: FormData) {
       ? Number(formData.get('module_count'))
       : null,
     inverter_brand: formData.get('inverter_brand') as string,
+    inverter_type: (formData.get('inverter_type') as string) || null,
+    monthly_generation_kwh: formData.get('monthly_generation_kwh')
+      ? Number(formData.get('monthly_generation_kwh'))
+      : null,
     client_name: formData.get('client_name') as string,
     description: formData.get('description') as string,
     video_url: formData.get('video_url') as string,
@@ -95,6 +99,10 @@ export async function updateProject(id: string, formData: FormData) {
         ? Number(formData.get('module_count'))
         : null,
       inverter_brand: formData.get('inverter_brand') as string,
+      inverter_type: (formData.get('inverter_type') as string) || null,
+      monthly_generation_kwh: formData.get('monthly_generation_kwh')
+        ? Number(formData.get('monthly_generation_kwh'))
+        : null,
       client_name: formData.get('client_name') as string,
       description: formData.get('description') as string,
       video_url: formData.get('video_url') as string,
@@ -110,6 +118,33 @@ export async function updateProject(id: string, formData: FormData) {
 
   revalidatePath('/admin/projetos')
   redirect('/admin/projetos')
+}
+
+function parseAmount(value: FormDataEntryValue | null) {
+  const amount = Number(String(value ?? '').replace(',', '.'))
+  return String(value ?? '').trim() && Number.isFinite(amount) && amount >= 0 ? amount : null
+}
+
+export async function saveProjectResults(id: string, formData: FormData) {
+  const supabase = await createClient()
+  const billBefore = parseAmount(formData.get('bill_before'))
+  const billAfter = parseAmount(formData.get('bill_after'))
+
+  // A exibição só liga com os dois valores preenchidos
+  const { error } = await supabase.from('project_results').upsert({
+    project_id: id,
+    bill_before: billBefore,
+    bill_after: billAfter,
+    is_public: formData.get('is_public') === 'on' && billBefore !== null && billAfter !== null,
+    updated_at: new Date().toISOString(),
+  })
+
+  if (error) {
+    throw new Error(error.message)
+  }
+
+  revalidatePath(`/admin/projetos/${id}`)
+  revalidatePath('/')
 }
 
 export async function deleteProject(id: string) {

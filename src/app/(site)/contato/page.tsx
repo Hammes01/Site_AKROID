@@ -1,7 +1,9 @@
 'use client'
 
+import Link from 'next/link'
 import { useActionState } from 'react'
 import { useSearchParams } from 'next/navigation'
+import { PRIVACY_POLICY_PUBLISHED } from '@/lib/privacy'
 import { trackLead } from '@/lib/track'
 import { submitLead } from './actions'
 
@@ -109,6 +111,19 @@ export default function ContatoPage() {
               className="w-full rounded-md border border-slate-300 px-3 py-2 outline-none focus:border-slate-500"
             />
           </div>
+
+          {PRIVACY_POLICY_PUBLISHED && (
+            <label className="flex items-start gap-2 text-sm text-slate-600">
+              <input type="checkbox" name="consent" required className="mt-1" />
+              <span>
+                Autorizo o uso dos meus dados para receber o orçamento. Veja a{' '}
+                <Link href="/privacidade" className="underline">
+                  política de privacidade
+                </Link>
+                .
+              </span>
+            </label>
+          )}
 
           {state.message && !state.success && (
             <p className="text-sm text-red-600">{state.message}</p>

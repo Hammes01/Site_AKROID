@@ -1,6 +1,8 @@
 'use client'
 
+import Link from 'next/link'
 import { useActionState, useRef, useState } from 'react'
+import { PRIVACY_POLICY_PUBLISHED } from '@/lib/privacy'
 import type { SimulatorConfig } from '@/lib/sales-config'
 import { calcSystem } from '@/lib/solar-calc'
 import { trackEvent, trackLead } from '@/lib/track'
@@ -42,7 +44,7 @@ export default function Simulator({ config }: { config: SimulatorConfig }) {
   }
 
   return (
-    <section id="simulador" className="scroll-mt-20 bg-white py-24">
+    <section id="simulador" className="scroll-mt-20 border-t border-slate-100 bg-white py-24">
       <div className="mx-auto grid max-w-6xl gap-12 px-6 md:grid-cols-2">
         <div>
           <h2 className="text-4xl font-semibold tracking-tight text-slate-900 md:text-5xl">
@@ -154,7 +156,20 @@ export default function Simulator({ config }: { config: SimulatorConfig }) {
                 placeholder="Sua cidade"
                 className="w-full rounded-md border border-white/20 bg-white/5 px-3 py-2 outline-none placeholder:text-slate-400 focus:border-brand-300"
               />
-              {state.message && <p className="text-sm text-red-300">{state.message}</p>}
+              {PRIVACY_POLICY_PUBLISHED && (
+            <label className="flex items-start gap-2 text-sm text-slate-300">
+              <input type="checkbox" name="consent" required className="mt-1" />
+              <span>
+                Autorizo o uso dos meus dados para receber o orçamento. Veja a{' '}
+                <Link href="/privacidade" className="underline">
+                  política de privacidade
+                </Link>
+                .
+              </span>
+            </label>
+          )}
+
+          {state.message && <p className="text-sm text-red-300">{state.message}</p>}
               <button
                 type="submit"
                 disabled={pending}

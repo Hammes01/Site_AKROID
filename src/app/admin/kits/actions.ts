@@ -62,6 +62,7 @@ export async function createKit(formData: FormData) {
     category: (formData.get('category') as string) || null,
     price: priceRaw ? Number(priceRaw) : null,
     show_price: showPrice,
+    price_includes: formData.getAll('price_includes').map(String),
     status: formData.get('status') as string,
     is_featured: formData.get('is_featured') === 'on',
     created_by: user?.id,
@@ -92,6 +93,7 @@ export async function updateKit(id: string, formData: FormData) {
       category: (formData.get('category') as string) || null,
       price: priceRaw ? Number(priceRaw) : null,
       show_price: showPrice,
+      price_includes: formData.getAll('price_includes').map(String),
       status: formData.get('status') as string,
       is_featured: formData.get('is_featured') === 'on',
       updated_at: new Date().toISOString(),
@@ -104,6 +106,36 @@ export async function updateKit(id: string, formData: FormData) {
 
   revalidatePath('/admin/kits')
   redirect('/admin/kits')
+}
+
+export async function addKitItem(kitId: string, formData: FormData) {
+  const supabase = await createClient()
+
+  const { error } = await supabase.from('kit_items').insert({
+    kit_id: kitId,
+    product_id: formData.get('product_id') as string,
+    quantity: Number(formData.get('quantity')) || 1,
+  })
+
+  if (error) {
+    throw new Error(error.message)
+  }
+
+  revalidatePath(`/admin/kits/${kitId}`)
+  revalidatePath('/')
+}
+
+export async function removeKitItem(kitId: string, itemId: string) {
+  const supabase = await createClient()
+
+  const { error } = await supabase.from('kit_items').delete().eq('id', itemId)
+
+  if (error) {
+    throw new Error(error.message)
+  }
+
+  revalidatePath(`/admin/kits/${kitId}`)
+  revalidatePath('/')
 }
 
 export async function deleteKit(id: string) {

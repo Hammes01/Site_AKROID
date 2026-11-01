@@ -1,6 +1,6 @@
 import { notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
-import { updateProject, deleteProject } from '../actions'
+import { updateProject, deleteProject, saveProjectResults } from '../actions'
 import ProjectMediaManager from './ProjectMediaManager'
 
 export default async function EditarProjetoPage({
@@ -27,6 +27,13 @@ export default async function EditarProjetoPage({
     .eq('project_id', id)
     .order('sort_order', { ascending: true })
 
+  const { data: results } = await supabase
+    .from('project_results')
+    .select('bill_before, bill_after, is_public')
+    .eq('project_id', id)
+    .maybeSingle()
+
+  const saveResultsWithId = saveProjectResults.bind(null, id)
   const updateProjectWithId = updateProject.bind(null, id)
   const deleteProjectWithId = deleteProject.bind(null, id)
 
@@ -127,6 +134,36 @@ export default async function EditarProjetoPage({
           </div>
         </div>
 
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className="mb-1 block text-sm text-slate-300">
+              Tipo de inversor
+            </label>
+            <select
+              name="inverter_type"
+              defaultValue={project.inverter_type ?? ''}
+              className="w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 outline-none focus:border-slate-500"
+            >
+              <option value="">Selecione...</option>
+              <option value="inversor">Inversor</option>
+              <option value="microinversor">Microinversor</option>
+            </select>
+          </div>
+          <div>
+            <label className="mb-1 block text-sm text-slate-300">
+              Geração real (kWh/mês)
+            </label>
+            <input
+              name="monthly_generation_kwh"
+              type="number"
+              step="0.01"
+              min="0"
+              defaultValue={project.monthly_generation_kwh ?? ''}
+              className="w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 outline-none focus:border-slate-500"
+            />
+          </div>
+        </div>
+
         <div>
           <label className="mb-1 block text-sm text-slate-300">
             Nome do cliente
@@ -199,6 +236,64 @@ export default async function EditarProjetoPage({
         projectTitle={project.title}
         initialMedia={media ?? []}
       />
+
+      <section className="mt-10 max-w-xl border-t border-slate-800 pt-8">
+        <h2 className="text-lg font-semibold">Conta de luz antes e depois</h2>
+        <p className="mt-1 text-sm text-slate-400">
+          Fica escondido até você ativar. Informe só os valores em reais e tenha a autorização do
+          cliente.
+        </p>
+        <form action={saveResultsWithId} className="mt-4 space-y-4">
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label htmlFor="bill_before" className="mb-1 block text-sm text-slate-300">
+                Antes (R$)
+              </label>
+              <input
+                id="bill_before"
+                name="bill_before"
+                type="number"
+                step="0.01"
+                min="0"
+                defaultValue={results?.bill_before ?? ''}
+                className="w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 outline-none focus:border-slate-500"
+              />
+            </div>
+            <div>
+              <label htmlFor="bill_after" className="mb-1 block text-sm text-slate-300">
+                Depois (R$)
+              </label>
+              <input
+                id="bill_after"
+                name="bill_after"
+                type="number"
+                step="0.01"
+                min="0"
+                defaultValue={results?.bill_after ?? ''}
+                className="w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 outline-none focus:border-slate-500"
+              />
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <input
+              type="checkbox"
+              name="is_public"
+              id="is_public"
+              defaultChecked={results?.is_public ?? false}
+              className="h-4 w-4"
+            />
+            <label htmlFor="is_public" className="text-sm text-slate-300">
+              Mostrar no site
+            </label>
+          </div>
+          <button
+            type="submit"
+            className="rounded-md bg-white px-4 py-2 text-sm font-medium text-slate-900 hover:bg-slate-200"
+          >
+            Salvar conta de luz
+          </button>
+        </form>
+      </section>
     </div>
   )
 }
