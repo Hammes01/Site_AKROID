@@ -1,0 +1,171 @@
+'use client'
+
+import { useActionState, useRef, useState } from 'react'
+import type { SimulatorConfig } from '@/lib/sales-config'
+import { calcSystem } from '@/lib/solar-calc'
+import { trackEvent, trackLead } from '@/lib/track'
+import { submitLead } from '../contato/actions'
+
+const initialState = { success: false, message: '' }
+const MIN_BILL = 100
+const MAX_BILL = 5000
+
+function brl(value: number) {
+  return value.toLocaleString('pt-BR', {
+    style: 'currency',
+    currency: 'BRL',
+    maximumFractionDigits: 0,
+  })
+}
+
+export default function Simulator({ config }: { config: SimulatorConfig }) {
+  const [bill, setBill] = useState('500')
+  const usedRef = useRef(false)
+  const [state, formAction, pending] = useActionState(
+    async (_prevState: typeof initialState, formData: FormData) => {
+      const result = await submitLead(formData)
+      if (result.success) trackLead('simulador')
+      return result
+    },
+    initialState
+  )
+
+  const billValue = Number(bill)
+  const result = billValue > 0 ? calcSystem({ ...config, monthlyBill: billValue }) : null
+
+  function handleChange(value: string) {
+    setBill(value)
+    if (!usedRef.current) {
+      usedRef.current = true
+      trackEvent('simulator_used')
+    }
+  }
+
+  return (
+    <section id="simulador" className="scroll-mt-20 bg-white py-24">
+      <div className="mx-auto grid max-w-6xl gap-12 px-6 md:grid-cols-2">
+        <div>
+          <h2 className="text-4xl font-semibold tracking-tight text-slate-900 md:text-5xl">
+            Quanto você pode economizar?
+          </h2>
+          <p className="mt-4 text-lg text-slate-600">
+            Informe o valor médio da sua conta de luz e veja uma estimativa na hora.
+          </p>
+
+          <label htmlFor="simulator-bill" className="mt-8 block text-sm font-medium text-slate-700">
+            Conta de luz por mês (R$)
+          </label>
+          <input
+            id="simulator-bill"
+            type="number"
+            min={1}
+            inputMode="decimal"
+            value={bill}
+            onChange={(e) => handleChange(e.target.value)}
+            className="mt-2 w-full rounded-md border border-slate-300 px-3 py-3 text-2xl font-semibold text-slate-900 outline-none focus:border-brand-600"
+          />
+          <input
+            type="range"
+            aria-label="Ajustar valor da conta de luz"
+            min={MIN_BILL}
+            max={MAX_BILL}
+            step={50}
+            value={Math.min(MAX_BILL, Math.max(MIN_BILL, billValue || MIN_BILL))}
+            onChange={(e) => handleChange(e.target.value)}
+            className="mt-4 w-full accent-brand-600"
+          />
+        </div>
+
+        <div className="rounded-2xl bg-slate-950 p-6 text-white md:p-10">
+          {result ? (
+            <>
+              <p className="text-sm text-slate-300">Economia estimada por mês</p>
+              <p className="mt-1 text-5xl font-semibold tracking-tight text-brand-300">
+                {brl(result.monthlySavings)}
+              </p>
+              <dl className="mt-8 grid grid-cols-2 gap-6 border-t border-white/10 pt-6">
+                <div>
+                  <dt className="text-xs text-slate-400">Economia por ano</dt>
+                  <dd className="mt-1 text-lg font-semibold">{brl(result.yearlySavings)}</dd>
+                </div>
+                <div>
+                  <dt className="text-xs text-slate-400">Sistema estimado</dt>
+                  <dd className="mt-1 text-lg font-semibold">
+                    {result.systemKwp.toLocaleString('pt-BR', { maximumFractionDigits: 2 })} kWp
+                    {result.panels && config.panelWatts && (
+                      <span className="block text-xs font-normal text-slate-300">
+                        {result.panels} {result.panels === 1 ? 'placa' : 'placas'} de {config.panelWatts} W
+                      </span>
+                    )}
+                  </dd>
+                </div>
+                <div>
+                  <dt className="text-xs text-slate-400">Investimento estimado</dt>
+                  <dd className="mt-1 text-lg font-semibold">{brl(result.investment)}</dd>
+                </div>
+                <div>
+                  <dt className="text-xs text-slate-400">Retorno estimado</dt>
+                  <dd className="mt-1 text-lg font-semibold">
+                    {result.paybackYears === null
+                      ? '—'
+                      : `${result.paybackYears.toLocaleString('pt-BR', { maximumFractionDigits: 1 })} anos`}
+                  </dd>
+                </div>
+              </dl>
+            </>
+          ) : (
+            <p className="text-slate-300">Digite o valor da sua conta para ver a estimativa.</p>
+          )}
+
+          <p className="mt-6 text-xs text-slate-400">
+            Estimativa, não é proposta. O valor final depende da visita técnica e da
+            proposta.
+            {!config.savingsPercent &&
+              ' Este cálculo não inclui a cobrança do Fio B nem variações de tarifa e de preço dos equipamentos.'}
+          </p>
+
+          {state.success ? (
+            <p role="status" className="mt-6 rounded-lg bg-white/10 p-4 text-sm">
+              {state.message}
+            </p>
+          ) : (
+            <form action={formAction} className="mt-6 space-y-3 border-t border-white/10 pt-6">
+              <p className="font-medium">Receba uma proposta com base neste valor</p>
+              <input type="hidden" name="source" value="simulador" />
+              <input type="hidden" name="monthly_bill" value={bill} />
+              <input
+                name="name"
+                required
+                aria-label="Nome"
+                placeholder="Seu nome"
+                className="w-full rounded-md border border-white/20 bg-white/5 px-3 py-2 outline-none placeholder:text-slate-400 focus:border-brand-300"
+              />
+              <input
+                name="whatsapp"
+                required
+                type="tel"
+                aria-label="WhatsApp"
+                placeholder="Seu WhatsApp com DDD"
+                className="w-full rounded-md border border-white/20 bg-white/5 px-3 py-2 outline-none placeholder:text-slate-400 focus:border-brand-300"
+              />
+              <input
+                name="city"
+                aria-label="Cidade"
+                placeholder="Sua cidade"
+                className="w-full rounded-md border border-white/20 bg-white/5 px-3 py-2 outline-none placeholder:text-slate-400 focus:border-brand-300"
+              />
+              {state.message && <p className="text-sm text-red-300">{state.message}</p>}
+              <button
+                type="submit"
+                disabled={pending}
+                className="w-full rounded-full bg-brand-500 py-3 text-sm font-medium text-white hover:bg-brand-400 disabled:opacity-50"
+              >
+                {pending ? 'Enviando...' : 'Quero minha proposta'}
+              </button>
+            </form>
+          )}
+        </div>
+      </div>
+    </section>
+  )
+}

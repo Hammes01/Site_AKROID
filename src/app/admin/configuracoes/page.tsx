@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { revalidateHome } from './actions'
+import SalesSettings from './SalesSettings'
 
 export default function ConfiguracoesPage() {
   const [uploading, setUploading] = useState(false)
@@ -101,6 +102,8 @@ export default function ConfiguracoesPage() {
           </button>
         </form>
       </div>
+
+      <SalesSettings />
     </div>
   )
 }

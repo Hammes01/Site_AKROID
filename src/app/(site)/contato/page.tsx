@@ -2,6 +2,7 @@
 
 import { useActionState } from 'react'
 import { useSearchParams } from 'next/navigation'
+import { trackLead } from '@/lib/track'
 import { submitLead } from './actions'
 
 const initialState = { success: false, message: '' }
@@ -12,7 +13,9 @@ export default function ContatoPage() {
 
   const [state, formAction, pending] = useActionState(
     async (_prevState: typeof initialState, formData: FormData) => {
-      return await submitLead(formData)
+      const result = await submitLead(formData)
+      if (result.success) trackLead('site')
+      return result
     },
     initialState
   )
@@ -38,6 +41,10 @@ export default function ContatoPage() {
         </div>
       ) : (
         <form action={formAction} className="mt-8 space-y-4">
+          {kitInteresse && (
+            <input type="hidden" name="kit_interest" value={kitInteresse} />
+          )}
+
           <div>
             <label className="mb-1 block text-sm text-slate-700">
               Nome *
@@ -87,6 +94,22 @@ export default function ContatoPage() {
             </select>
           </div>
 
+          <div>
+            <label htmlFor="monthly_bill" className="mb-1 block text-sm text-slate-700">
+              Valor médio da conta de luz (R$)
+            </label>
+            <input
+              id="monthly_bill"
+              name="monthly_bill"
+              type="number"
+              min="0"
+              step="any"
+              inputMode="decimal"
+              placeholder="Ex.: 500"
+              className="w-full rounded-md border border-slate-300 px-3 py-2 outline-none focus:border-slate-500"
+            />
+          </div>
+
           {state.message && !state.success && (
             <p className="text-sm text-red-600">{state.message}</p>
           )}
@@ -94,7 +117,7 @@ export default function ContatoPage() {
           <button
             type="submit"
             disabled={pending}
-            className="w-full rounded-full bg-slate-900 py-3 text-sm font-medium text-white hover:bg-slate-800 disabled:opacity-50"
+            className="w-full rounded-full bg-brand-600 py-3 text-sm font-medium text-white hover:bg-brand-700 disabled:opacity-50"
           >
             {pending ? 'Enviando...' : 'Solicitar orçamento'}
           </button>

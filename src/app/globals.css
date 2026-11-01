@@ -12,6 +12,21 @@
   --font-mono: var(--font-geist-mono);
 }
 
+/* Paleta da marca AKROID, baseada no verde da logo.
+   Para ajustar o tom no futuro, é só mexer aqui. */
+@theme {
+  --color-brand-50: #f2fbe9;
+  --color-brand-100: #e0f5cc;
+  --color-brand-200: #c3ea9f;
+  --color-brand-300: #9edb68;
+  --color-brand-400: #7cc943;
+  --color-brand-500: #5fb02a;
+  --color-brand-600: #478c1f;
+  --color-brand-700: #386d1d;
+  --color-brand-800: #2f571c;
+  --color-brand-900: #1c3a14;
+}
+
 @media (prefers-color-scheme: dark) {
   :root {
     --background: #0a0a0a;

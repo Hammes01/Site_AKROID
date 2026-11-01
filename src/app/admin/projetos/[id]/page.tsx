@@ -1,6 +1,7 @@
 import { notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { updateProject, deleteProject } from '../actions'
+import ProjectMediaManager from './ProjectMediaManager'
 
 export default async function EditarProjetoPage({
   params,
@@ -19,6 +20,12 @@ export default async function EditarProjetoPage({
   if (!project) {
     notFound()
   }
+
+  const { data: media } = await supabase
+    .from('project_media')
+    .select('id, url, phase, sort_order')
+    .eq('project_id', id)
+    .order('sort_order', { ascending: true })
 
   const updateProjectWithId = updateProject.bind(null, id)
   const deleteProjectWithId = deleteProject.bind(null, id)
@@ -186,6 +193,12 @@ export default async function EditarProjetoPage({
           Salvar alterações
         </button>
       </form>
+
+      <ProjectMediaManager
+        projectId={id}
+        projectTitle={project.title}
+        initialMedia={media ?? []}
+      />
     </div>
   )
 }

@@ -4,7 +4,15 @@ import Link from 'next/link'
 import { motion, useScroll, useTransform, useReducedMotion } from 'motion/react'
 import { useEffect, useRef, useState } from 'react'
 
-export default function AnimatedHero({ videoUrl }: { videoUrl?: string }) {
+export default function AnimatedHero({
+  videoUrl,
+  region,
+  cta,
+}: {
+  videoUrl?: string
+  region?: string | null
+  cta: { href: string; label: string }
+}) {
   const ref = useRef<HTMLElement>(null)
   const shouldReduceMotion = useReducedMotion()
   const [mounted, setMounted] = useState(false)
@@ -39,7 +47,9 @@ export default function AnimatedHero({ videoUrl }: { videoUrl?: string }) {
   return (
     <section
       ref={ref}
-      className="relative flex h-[90vh] min-h-[600px] items-center justify-center overflow-hidden text-center"
+      className={`relative flex h-[90vh] min-h-[600px] items-center justify-center overflow-hidden text-center ${
+        videoUrl ? 'bg-slate-950' : ''
+      }`}
     >
       {videoUrl && (
         <motion.video
@@ -56,6 +66,11 @@ export default function AnimatedHero({ videoUrl }: { videoUrl?: string }) {
       {/* Camada escura por cima do vídeo, pra garantir contraste do texto */}
       {videoUrl && <div className="absolute inset-0 bg-black/40" />}
 
+      {/* Dissolve a base do vídeo na seção escura que vem logo abaixo */}
+      {videoUrl && (
+        <div className="absolute inset-x-0 bottom-0 h-40 bg-linear-to-t from-slate-950 to-transparent" />
+      )}
+
       <motion.div
         style={textStyle}
         className={`relative z-10 mx-auto max-w-3xl px-4 ${
@@ -63,8 +78,9 @@ export default function AnimatedHero({ videoUrl }: { videoUrl?: string }) {
         }`}
       >
         <h1 className="text-4xl font-semibold tracking-tight md:text-6xl">
-          Engenharia que transforma
-          <br className="hidden md:block" /> energia em resultado.
+          Reduza sua conta de luz
+          <br className="hidden md:block" /> com energia solar
+          {region ? ` em ${region}` : ''}.
         </h1>
         <p
           className={`mx-auto mt-6 max-w-2xl text-lg ${
@@ -76,10 +92,10 @@ export default function AnimatedHero({ videoUrl }: { videoUrl?: string }) {
         </p>
         <div className="mt-8 flex justify-center gap-4">
           <Link
-            href="/contato"
-            className="rounded-full bg-white px-6 py-3 text-sm font-medium text-slate-900 hover:bg-slate-200"
+            href={cta.href}
+            className="rounded-full bg-brand-500 px-6 py-3 text-sm font-medium text-white hover:bg-brand-400"
           >
-            Solicitar orçamento
+            {cta.label}
           </Link>
           <Link
             href="/projetos"
