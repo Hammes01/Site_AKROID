@@ -1,3 +1,5 @@
+import Link from 'next/link'
+import { PRIVACY_POLICY_PUBLISHED } from '@/lib/privacy'
 import { createClient } from '@/lib/supabase/server'
 import { parseSalesConfig } from '@/lib/sales-config'
 import Analytics from './components/Analytics'
@@ -24,6 +26,7 @@ export default async function SiteLayout({
   ])
   const sales = parseSalesConfig(salesSetting?.value)
   const cnpj = org?.document ?? sales.cnpj
+  const contacts = [sales.contactPhone, sales.contactEmail, sales.contactAddress].filter(Boolean)
 
   return (
     <div className="min-h-screen bg-white text-slate-900">
@@ -40,6 +43,14 @@ export default async function SiteLayout({
             Operado por {org?.legal_name ?? 'Hermon Serviços e Importação LTDA.'}
             {cnpj ? ` — CNPJ ${cnpj}` : ''}
           </p>
+          {contacts.length > 0 && <p className="mt-3">{contacts.join(' · ')}</p>}
+          {PRIVACY_POLICY_PUBLISHED && (
+            <p className="mt-3">
+              <Link href="/privacidade" className="underline hover:text-brand-700">
+                Política de privacidade
+              </Link>
+            </p>
+          )}
           <p className="mt-4 text-xs text-slate-400">
             © {new Date().getFullYear()} {org?.trade_name ?? 'AKROID'}. Todos
             os direitos reservados.

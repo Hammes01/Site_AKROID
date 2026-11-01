@@ -7,8 +7,15 @@ export type RawSalesConfig = {
   whatsapp?: string
   region?: string
   cnpj?: string
-  financing_text?: string
   trust_items?: string[]
+  about_text?: string
+  about_photo_url?: string
+  process_steps?: string[]
+  cash_discount_percent?: number
+  card_installments?: number
+  contact_phone?: string
+  contact_email?: string
+  contact_address?: string
   ga_id?: string
   meta_pixel_id?: string
   tariff?: number
@@ -29,6 +36,59 @@ export type SimulatorConfig = {
   minKwh: number
   annualMaintenance: number
 }
+
+export type ProcessStep = { title: string; text: string }
+
+export const DEFAULT_PROCESS_STEPS: ProcessStep[] = [
+  {
+    title: 'Primeiro contato',
+    text: 'Você nos chama, ou nós chamamos você, e conversamos sobre o que você precisa.',
+  },
+  {
+    title: 'Análise da conta de luz',
+    text: 'Pedimos sua fatura para ver seu consumo e dimensionar o sistema.',
+  },
+  {
+    title: 'Visita ao local',
+    text: 'Vamos até você ver o telhado, a posição do sol e o padrão de entrada. Também é a hora de conversar pessoalmente e tirar dúvidas.',
+  },
+  {
+    title: 'Proposta',
+    text: 'Enviamos a cotação. Se você quiser financiar, com sua autorização simulamos nos bancos.',
+  },
+  {
+    title: 'Projeto elétrico',
+    text: 'Aceita a proposta, começamos o projeto na hora e damos entrada na aprovação junto à distribuidora.',
+  },
+  {
+    title: 'Compra e pagamento',
+    text: 'Fazemos a compra do material, com nota no seu nome ou da empresa, como você preferir. O pagamento pode ser à vista, no cartão ou financiado.',
+  },
+  {
+    title: 'Instalação e vistoria',
+    text: 'Com o material aqui e o projeto aprovado, instalamos, colocamos a sinalização exigida pelas normas e pedimos a vistoria. Depois dela, seu sistema entra em operação.',
+  },
+]
+
+// Cada passo fica em uma linha, no formato "Título: texto"
+export function formatProcessSteps(steps: ProcessStep[]) {
+  return steps.map((step) => `${step.title}: ${step.text}`)
+}
+
+function parseProcessSteps(lines: unknown) {
+  if (!Array.isArray(lines)) return DEFAULT_PROCESS_STEPS
+  return lines
+    .filter((line): line is string => typeof line === 'string' && !!line.trim())
+    .map((line) => {
+      const separator = line.indexOf(':')
+      return separator === -1
+        ? { title: line.trim(), text: '' }
+        : { title: line.slice(0, separator).trim(), text: line.slice(separator + 1).trim() }
+    })
+}
+
+// Item com [colchetes] ainda tem dado a preencher, então fica fora do site
+const PLACEHOLDER_PATTERN = /\[[^\]]*\]/
 
 const GA_ID_PATTERN = /^G-[A-Z0-9]+$/
 const META_PIXEL_PATTERN = /^\d+$/
@@ -61,10 +121,19 @@ export function parseSalesConfig(value: unknown) {
     whatsapp: text(raw.whatsapp),
     region: text(raw.region),
     cnpj: text(raw.cnpj),
-    financingText: text(raw.financing_text),
     trustItems: Array.isArray(raw.trust_items)
-      ? raw.trust_items.filter((item) => typeof item === 'string' && item.trim())
+      ? raw.trust_items.filter(
+          (item) => typeof item === 'string' && item.trim() && !PLACEHOLDER_PATTERN.test(item)
+        )
       : [],
+    aboutText: text(raw.about_text),
+    aboutPhotoUrl: text(raw.about_photo_url),
+    processSteps: parseProcessSteps(raw.process_steps),
+    cashDiscountPercent: positive(raw.cash_discount_percent),
+    cardInstallments: positive(raw.card_installments),
+    contactPhone: text(raw.contact_phone),
+    contactEmail: text(raw.contact_email),
+    contactAddress: text(raw.contact_address),
     // Os IDs entram em um script, então só passam se tiverem o formato esperado
     gaId: gaId && isValidGaId(gaId) ? gaId : null,
     metaPixelId: metaPixelId && isValidMetaPixelId(metaPixelId) ? metaPixelId : null,

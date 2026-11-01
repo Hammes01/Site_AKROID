@@ -2,7 +2,13 @@
 
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { isValidGaId, isValidMetaPixelId, type RawSalesConfig } from '@/lib/sales-config'
+import {
+  DEFAULT_PROCESS_STEPS,
+  formatProcessSteps,
+  isValidGaId,
+  isValidMetaPixelId,
+  type RawSalesConfig,
+} from '@/lib/sales-config'
 import { revalidateHome } from './actions'
 
 const inputClass =
@@ -21,6 +27,19 @@ function toNumber(value: FormDataEntryValue | null) {
 
 function toText(value: FormDataEntryValue | null) {
   return String(value ?? '').trim() || undefined
+}
+
+function toLines(value: FormDataEntryValue | null) {
+  return String(value ?? '')
+    .split('\n')
+    .map((line) => line.trim())
+    .filter(Boolean)
+}
+
+const PHOTO_EXTENSIONS: Record<string, string> = {
+  'image/jpeg': 'jpg',
+  'image/png': 'png',
+  'image/webp': 'webp',
 }
 
 export default function SalesSettings() {
@@ -68,15 +87,38 @@ export default function SalesSettings() {
     const savingsPercent = toNumber(form.get('savings_percent'))
     if ((savingsPercent ?? 0) > 100) return fail('A economia não pode passar de 100%.')
 
+    setSaving(true)
+    let aboutPhotoUrl = form.get('remove_about_photo') === 'on' ? undefined : initial?.about_photo_url
+    const photo = form.get('about_photo') as File | null
+    if (photo && photo.size > 0) {
+      const extension = PHOTO_EXTENSIONS[photo.type]
+      if (!extension || photo.size > 10 * 1024 * 1024) {
+        setSaving(false)
+        return fail('A foto precisa ser JPG, PNG ou WebP de até 10 MB.')
+      }
+      const supabase = createClient()
+      const path = `about-photo-${Date.now()}.${extension}`
+      const { error: uploadError } = await supabase.storage.from('site-assets').upload(path, photo)
+      if (uploadError) {
+        setSaving(false)
+        return fail(uploadError.message)
+      }
+      aboutPhotoUrl = supabase.storage.from('site-assets').getPublicUrl(path).data.publicUrl
+    }
+
     const value: RawSalesConfig = {
       whatsapp,
       region: toText(form.get('region')),
       cnpj: toText(form.get('cnpj')),
-      financing_text: toText(form.get('financing_text')),
-      trust_items: String(form.get('trust_items') ?? '')
-        .split('\n')
-        .map((line) => line.trim())
-        .filter(Boolean),
+      contact_phone: toText(form.get('contact_phone')),
+      contact_email: toText(form.get('contact_email')),
+      contact_address: toText(form.get('contact_address')),
+      trust_items: toLines(form.get('trust_items')),
+      about_text: toText(form.get('about_text')),
+      about_photo_url: aboutPhotoUrl,
+      process_steps: toLines(form.get('process_steps')),
+      cash_discount_percent: toNumber(form.get('cash_discount_percent')),
+      card_installments: toNumber(form.get('card_installments')),
       ga_id: gaId,
       meta_pixel_id: metaPixelId,
       ...simulator,
@@ -86,7 +128,6 @@ export default function SalesSettings() {
       annual_maintenance: toNumber(form.get('annual_maintenance')),
     }
 
-    setSaving(true)
     const { error } = await createClient()
       .from('site_settings')
       .upsert({ key: 'sales_config', value, updated_at: new Date().toISOString() })
@@ -97,6 +138,7 @@ export default function SalesSettings() {
     }
 
     await revalidateHome()
+    setInitial(value)
     setSaving(false)
     setMessage({ text: 'Configurações salvas!', success: true })
   }
@@ -125,6 +167,18 @@ export default function SalesSettings() {
           <label htmlFor="cnpj" className="mb-1 block text-sm text-slate-300">CNPJ</label>
           <input id="cnpj" name="cnpj" defaultValue={initial.cnpj} placeholder="00.000.000/0001-00" className={inputClass} />
         </div>
+        <div>
+          <label htmlFor="contact_phone" className="mb-1 block text-sm text-slate-300">Telefone (rodapé)</label>
+          <input id="contact_phone" name="contact_phone" defaultValue={initial.contact_phone} className={inputClass} />
+        </div>
+        <div>
+          <label htmlFor="contact_email" className="mb-1 block text-sm text-slate-300">E-mail (rodapé)</label>
+          <input id="contact_email" name="contact_email" type="email" defaultValue={initial.contact_email} className={inputClass} />
+        </div>
+        <div>
+          <label htmlFor="contact_address" className="mb-1 block text-sm text-slate-300">Endereço (rodapé)</label>
+          <input id="contact_address" name="contact_address" defaultValue={initial.contact_address} className={inputClass} />
+        </div>
       </div>
 
       <div>
@@ -136,24 +190,66 @@ export default function SalesSettings() {
           name="trust_items"
           rows={4}
           defaultValue={initial.trust_items?.join('\n')}
-          placeholder={'Só informações verdadeiras. Ex.:\nEngenheiro responsável com registro no CREA\nGarantia de instalação de X anos'}
+          placeholder={'Só informações verdadeiras. Ex.:\nTécnico em eletrotécnica com registro profissional nº [número]\nEmpresa familiar: atendimento direto com os donos\nGarantia de instalação de [X] anos'}
           className={inputClass}
+        />
+        <p className="mt-1 text-xs text-slate-500">Linha com [colchetes] fica escondida no site até você trocar pelo dado real.</p>
+      </div>
+
+      <div>
+        <label htmlFor="about_text" className="mb-1 block text-sm text-slate-300">História da empresa</label>
+        <textarea id="about_text" name="about_text" rows={4} defaultValue={initial.about_text} className={inputClass} />
+      </div>
+
+      <div>
+        <label htmlFor="about_photo" className="mb-1 block text-sm text-slate-300">Foto de quem cuida do projeto</label>
+        {initial.about_photo_url && (
+          <>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={initial.about_photo_url} alt="" className="mb-2 aspect-video w-full rounded-md object-cover" />
+            <label className="mb-2 flex items-center gap-2 text-sm text-slate-300">
+              <input type="checkbox" name="remove_about_photo" className="h-4 w-4" />
+              Remover esta foto
+            </label>
+          </>
+        )}
+        <input
+          id="about_photo"
+          name="about_photo"
+          type="file"
+          accept="image/jpeg,image/png,image/webp"
+          className="w-full text-sm text-slate-300 file:mr-3 file:rounded-md file:border-0 file:bg-slate-800 file:px-3 file:py-2 file:text-sm file:text-white"
         />
       </div>
 
       <div>
-        <label htmlFor="financing_text" className="mb-1 block text-sm text-slate-300">
-          Formas de pagamento e financiamento
+        <label htmlFor="process_steps" className="mb-1 block text-sm text-slate-300">
+          Como funciona (um passo por linha, no formato Título: texto)
         </label>
         <textarea
-          id="financing_text"
-          name="financing_text"
-          rows={3}
-          defaultValue={initial.financing_text}
-          placeholder="Descreva as condições que vocês realmente oferecem."
+          id="process_steps"
+          name="process_steps"
+          rows={10}
+          defaultValue={(initial.process_steps ?? formatProcessSteps(DEFAULT_PROCESS_STEPS)).join('\n')}
           className={inputClass}
         />
+        <p className="mt-1 text-xs text-slate-500">Não coloque prazos que vocês não possam garantir.</p>
       </div>
+
+      <fieldset className="space-y-3">
+        <legend className="text-sm font-semibold text-slate-300">Formas de pagamento</legend>
+        <p className="text-xs text-slate-500">Vazio mostra o texto sem números.</p>
+        <div className="grid gap-4 md:grid-cols-2">
+          <div>
+            <label htmlFor="cash_discount_percent" className="mb-1 block text-sm text-slate-300">Desconto à vista (%)</label>
+            <input id="cash_discount_percent" name="cash_discount_percent" type="number" step="any" min="0" max="100" defaultValue={initial.cash_discount_percent} className={inputClass} />
+          </div>
+          <div>
+            <label htmlFor="card_installments" className="mb-1 block text-sm text-slate-300">Parcelas no cartão</label>
+            <input id="card_installments" name="card_installments" type="number" step="1" min="1" defaultValue={initial.card_installments} className={inputClass} />
+          </div>
+        </div>
+      </fieldset>
 
       <fieldset className="space-y-3">
         <legend className="text-sm font-semibold text-slate-300">Simulador de economia</legend>

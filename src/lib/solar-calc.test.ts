@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { describe, it } from 'node:test'
-import { calcSystem, monthlyGenerationPerKwp } from './solar-calc.ts'
+import { calcSystem, maxMonthlyBillForSystem, monthlyGenerationPerKwp } from './solar-calc.ts'
 
 const base = {
   generationPerKwp: 124.8,
@@ -39,6 +39,19 @@ describe('calcSystem: casos do orçamento', () => {
       near(result.paybackYears, c.back)
     })
   }
+})
+
+describe('maxMonthlyBillForSystem', () => {
+  const config = { tariff: 1.19, generationPerKwp: 124.8 }
+
+  it('calcula a conta máxima de um kit de 8 kWp', () => {
+    near(maxMonthlyBillForSystem(8, config), 1188.1, 0.1)
+  })
+
+  it('é coerente com o simulador: essa conta precisa exatamente daquele sistema', () => {
+    const bill = maxMonthlyBillForSystem(8, config)
+    near(calcSystem({ ...base, ...config, panelWatts: null, monthlyBill: bill }).requiredKwp, 8, 0.0001)
+  })
 })
 
 describe('calcSystem: regras', () => {

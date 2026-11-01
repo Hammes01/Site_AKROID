@@ -1,3 +1,4 @@
+import { KIT_INCLUDES } from '@/lib/kit-options'
 import { createKit } from '../actions'
 
 export default function NovoKitPage() {
@@ -64,6 +65,23 @@ export default function NovoKitPage() {
             className="w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 outline-none focus:border-slate-500"
           />
         </div>
+
+        <fieldset>
+          <legend className="mb-1 text-sm text-slate-300">O preço inclui</legend>
+          <div className="flex flex-wrap gap-4">
+            {KIT_INCLUDES.map((option) => (
+              <label key={option.value} className="flex items-center gap-2 text-sm text-slate-300">
+                <input
+                  type="checkbox"
+                  name="price_includes"
+                  value={option.value}
+                  className="h-4 w-4"
+                />
+                {option.label}
+              </label>
+            ))}
+          </div>
+        </fieldset>
 
         <div className="flex items-center gap-2">
           <input type="checkbox" name="show_price" id="show_price" className="h-4 w-4" />

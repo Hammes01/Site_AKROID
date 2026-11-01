@@ -28,18 +28,18 @@ const QUESTIONS = [
   {
     question: 'Quanto tempo leva até começar a gerar?',
     answer:
-      'A instalação costuma ser rápida. O prazo total também inclui o projeto e a aprovação pela distribuidora, então ele é informado na proposta.',
+      'Depende do projeto, da aprovação pela distribuidora e da chegada do material até a sua região. Por isso, conversamos sobre isso caso a caso.',
   },
 ]
 
 export default function Faq() {
   return (
     <section className="bg-white py-24">
-      <div className="mx-auto max-w-3xl px-6">
+      <div className="mx-auto grid max-w-6xl gap-10 px-6 lg:grid-cols-[1fr_2fr] lg:gap-16">
         <h2 className="text-4xl font-semibold tracking-tight text-slate-900 md:text-5xl">
           Perguntas frequentes
         </h2>
-        <div className="mt-10 divide-y divide-slate-200 border-y border-slate-200">
+        <div className="divide-y divide-slate-200 border-y border-slate-200">
           {QUESTIONS.map((item) => (
             <details key={item.question} className="group py-5">
               <summary className="flex cursor-pointer list-none items-center justify-between gap-4 font-medium text-slate-900 [&::-webkit-details-marker]:hidden">

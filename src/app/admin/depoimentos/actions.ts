@@ -26,6 +26,7 @@ export async function createTestimonial(formData: FormData) {
     content: formData.get('content') as string,
     video_url: formData.get('video_url') as string,
     rating: formData.get('rating') ? Number(formData.get('rating')) : null,
+    project_id: (formData.get('project_id') as string) || null,
     is_published: formData.get('is_published') === 'on',
     created_by: user?.id,
   })
@@ -51,6 +52,7 @@ export async function updateTestimonial(id: string, formData: FormData) {
       content: formData.get('content') as string,
       video_url: formData.get('video_url') as string,
       rating: formData.get('rating') ? Number(formData.get('rating')) : null,
+      project_id: (formData.get('project_id') as string) || null,
       is_published: formData.get('is_published') === 'on',
     })
     .eq('id', id)

@@ -1,6 +1,13 @@
+import { createClient } from '@/lib/supabase/server'
 import { createTestimonial } from '../actions'
 
-export default function NovoDepoimentoPage() {
+export default async function NovoDepoimentoPage() {
+  const supabase = await createClient()
+  const { data: projects } = await supabase
+    .from('projects')
+    .select('id, title')
+    .order('title')
+
   return (
     <div className="p-8 text-white">
       <h1 className="text-2xl font-semibold">Novo depoimento</h1>
@@ -62,6 +69,23 @@ export default function NovoDepoimentoPage() {
             type="url"
             className="w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 outline-none focus:border-slate-500"
           />
+        </div>
+
+        <div>
+          <label className="mb-1 block text-sm text-slate-300">
+            Projeto do cliente
+          </label>
+          <select
+            name="project_id"
+            className="w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 outline-none focus:border-slate-500"
+          >
+            <option value="">Sem projeto (aparece como citação)</option>
+            {projects?.map((project) => (
+              <option key={project.id} value={project.id}>
+                {project.title}
+              </option>
+            ))}
+          </select>
         </div>
 
         <div>

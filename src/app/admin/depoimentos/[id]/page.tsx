@@ -20,6 +20,11 @@ export default async function EditarDepoimentoPage({
     notFound()
   }
 
+  const { data: projects } = await supabase
+    .from('projects')
+    .select('id, title')
+    .order('title')
+
   const updateWithId = updateTestimonial.bind(null, id)
   const deleteWithId = deleteTestimonial.bind(null, id)
 
@@ -100,6 +105,24 @@ export default async function EditarDepoimentoPage({
             defaultValue={testimonial.video_url ?? ''}
             className="w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 outline-none focus:border-slate-500"
           />
+        </div>
+
+        <div>
+          <label className="mb-1 block text-sm text-slate-300">
+            Projeto do cliente
+          </label>
+          <select
+            name="project_id"
+            defaultValue={testimonial.project_id ?? ''}
+            className="w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 outline-none focus:border-slate-500"
+          >
+            <option value="">Sem projeto (aparece como citação)</option>
+            {projects?.map((project) => (
+              <option key={project.id} value={project.id}>
+                {project.title}
+              </option>
+            ))}
+          </select>
         </div>
 
         <div>

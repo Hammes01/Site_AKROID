@@ -20,6 +20,14 @@ export function monthlyGenerationPerKwp(sunHours: number, performanceFactor: num
   return sunHours * performanceFactor * 30
 }
 
+// Maior conta que um sistema cobre, pela mesma conta de calcSystem: consumo = kWp × geração
+export function maxMonthlyBillForSystem(
+  systemKwp: number,
+  { tariff, generationPerKwp }: Pick<SolarInput, 'tariff' | 'generationPerKwp'>
+) {
+  return systemKwp * generationPerKwp * tariff
+}
+
 export function calcSystem({
   monthlyBill,
   tariff,

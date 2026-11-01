@@ -1,6 +1,8 @@
 import { notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
-import { updateKit, deleteKit } from '../actions'
+import { KIT_INCLUDES } from '@/lib/kit-options'
+import { addKitItem, deleteKit, removeKitItem, updateKit } from '../actions'
+import KitImageUpload from './KitImageUpload'
 
 export default async function EditarKitPage({
   params,
@@ -20,6 +22,16 @@ export default async function EditarKitPage({
     notFound()
   }
 
+  const [{ data: items }, { data: products }] = await Promise.all([
+    supabase
+      .from('kit_items')
+      .select('id, quantity, products(name, brand, model)')
+      .eq('kit_id', id)
+      .order('created_at'),
+    supabase.from('products').select('id, name, brand, model').order('name'),
+  ])
+
+  const addKitItemWithId = addKitItem.bind(null, id)
   const updateKitWithId = updateKit.bind(null, id)
   const deleteKitWithId = deleteKit.bind(null, id)
 
@@ -101,6 +113,24 @@ export default async function EditarKitPage({
           />
         </div>
 
+        <fieldset>
+          <legend className="mb-1 text-sm text-slate-300">O preço inclui</legend>
+          <div className="flex flex-wrap gap-4">
+            {KIT_INCLUDES.map((option) => (
+              <label key={option.value} className="flex items-center gap-2 text-sm text-slate-300">
+                <input
+                  type="checkbox"
+                  name="price_includes"
+                  value={option.value}
+                  defaultChecked={kit.price_includes?.includes(option.value)}
+                  className="h-4 w-4"
+                />
+                {option.label}
+              </label>
+            ))}
+          </div>
+        </fieldset>
+
         <div className="flex items-center gap-2">
           <input
             type="checkbox"
@@ -147,6 +177,83 @@ export default async function EditarKitPage({
           Salvar alterações
         </button>
       </form>
+
+      <section className="mt-10 max-w-xl border-t border-slate-800 pt-8">
+        <h2 className="text-lg font-semibold">Itens do kit</h2>
+        <p className="mt-1 text-sm text-slate-400">
+          Só produtos publicados aparecem no site. Cadastre placa, inversor e estrutura em Produtos.
+        </p>
+
+        {items && items.length > 0 ? (
+          <ul className="mt-4 divide-y divide-slate-800 rounded-lg border border-slate-800">
+            {items.map((item) => {
+              const product = (Array.isArray(item.products) ? item.products[0] : item.products) as {
+                name: string
+                brand: string | null
+                model: string | null
+              } | null
+
+              return (
+                <li key={item.id} className="flex items-center justify-between gap-4 px-4 py-3 text-sm">
+                  <span>
+                    {item.quantity}x {[product?.name, product?.brand, product?.model].filter(Boolean).join(' · ')}
+                  </span>
+                  <form action={removeKitItem.bind(null, id, item.id)}>
+                    <button type="submit" className="text-red-400 hover:text-red-300">
+                      Remover
+                    </button>
+                  </form>
+                </li>
+              )
+            })}
+          </ul>
+        ) : (
+          <p className="mt-4 text-sm text-slate-500">Nenhum item cadastrado.</p>
+        )}
+
+        <form action={addKitItemWithId} className="mt-4 flex flex-wrap items-end gap-3">
+          <div className="min-w-0 flex-1">
+            <label htmlFor="product_id" className="mb-1 block text-sm text-slate-300">
+              Produto
+            </label>
+            <select
+              id="product_id"
+              name="product_id"
+              required
+              className="w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 outline-none focus:border-slate-500"
+            >
+              <option value="">Selecione...</option>
+              {products?.map((product) => (
+                <option key={product.id} value={product.id}>
+                  {[product.name, product.brand, product.model].filter(Boolean).join(' · ')}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="w-24">
+            <label htmlFor="quantity" className="mb-1 block text-sm text-slate-300">
+              Qtd.
+            </label>
+            <input
+              id="quantity"
+              name="quantity"
+              type="number"
+              min="1"
+              defaultValue={1}
+              required
+              className="w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 outline-none focus:border-slate-500"
+            />
+          </div>
+          <button
+            type="submit"
+            className="rounded-md bg-white px-4 py-2 text-sm font-medium text-slate-900 hover:bg-slate-200"
+          >
+            Adicionar
+          </button>
+        </form>
+      </section>
+
+      <KitImageUpload kitId={id} kitName={kit.name} initialUrl={kit.main_image_url} />
     </div>
   )
 }
