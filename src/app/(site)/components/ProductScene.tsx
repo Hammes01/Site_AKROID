@@ -7,7 +7,7 @@ import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js'
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js'
 
 // Altura, em pixels, do topo do site e do bloco de texto mais a barra inferior no celular.
-const MOBILE_HEADER_HEIGHT = 64
+const MOBILE_HEADER_HEIGHT = 72
 const MOBILE_TEXT_HEIGHT = 340
 
 // Interpola de 0 a 1 entre dois pontos do scroll, com início e fim suaves.

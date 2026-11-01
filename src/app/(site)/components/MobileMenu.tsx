@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation'
 import { AnimatePresence, motion, MotionConfig } from 'motion/react'
 import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
+import type { GlassTone } from './SiteHeader'
 
 const ICONS: Record<string, string> = {
   '/': 'M3 11.5 12 4l9 7.5M5.5 9.5V20h13V9.5M10 20v-5.5h4V20',
@@ -24,8 +25,10 @@ function isCurrent(pathname: string, href: string) {
 
 export default function MobileMenu({
   links,
+  tone,
 }: {
   links: { label: string; href: string }[]
+  tone: GlassTone
 }) {
   const pathname = usePathname()
   const [open, setOpen] = useState(false)
@@ -52,7 +55,7 @@ export default function MobileMenu({
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [open])
 
-  const line = 'absolute left-0 h-0.5 w-5 rounded-full bg-slate-900 transition duration-300 ease-out'
+  const line = 'absolute left-0 h-0.5 w-5 rounded-full bg-current transition duration-300 ease-out'
 
   return (
     <>
@@ -63,7 +66,11 @@ export default function MobileMenu({
         aria-expanded={open}
         aria-controls="menu-celular"
         onClick={() => setOpen(!open)}
-        className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-slate-200 bg-white/70 md:hidden"
+        className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full border transition-colors duration-300 md:hidden ${
+          tone === 'dark'
+            ? 'border-white/35 bg-white/15 text-white'
+            : 'border-slate-900/15 bg-white/30 text-slate-900'
+        }`}
       >
         <span aria-hidden="true" className="relative h-4 w-5">
           <span className={`${line} top-0 ${open ? 'translate-y-[7px] rotate-45' : ''}`} />
@@ -92,13 +99,14 @@ export default function MobileMenu({
                   <motion.nav
                     ref={panelRef}
                     id="menu-celular"
-                    aria-label="Menu principal"
+                    aria-label="Menu do celular"
+                    data-tone={tone}
                     tabIndex={-1}
                     initial={{ opacity: 0, scale: 0.4, y: -14 }}
                     animate={{ opacity: 1, scale: 1, y: 0 }}
                     exit={{ opacity: 0, scale: 0.6, y: -10 }}
                     transition={SPRING}
-                    className="liquid-glass fixed top-18 right-3 z-60 w-[min(17.5rem,calc(100vw-1.5rem))] origin-top-right rounded-[1.75rem] p-2 outline-none"
+                    className="liquid-glass liquid-glass-panel fixed top-20 right-3 z-60 w-[min(17.5rem,calc(100vw-1.5rem))] origin-top-right rounded-[1.75rem] p-2 outline-none"
                   >
                     <ul className="relative">
                       {links.map((link) => {
@@ -110,7 +118,7 @@ export default function MobileMenu({
                               href={link.href}
                               aria-current={current ? 'page' : undefined}
                               onClick={() => setOpen(false)}
-                              className={`flex min-h-12 items-center justify-between gap-4 rounded-[1.25rem] px-4 text-[1.0625rem] text-slate-950 transition-colors active:bg-white/50 ${
+                              className={`flex min-h-12 items-center justify-between gap-4 rounded-[1.25rem] px-4 text-[1.0625rem] transition-colors active:bg-white/25 ${
                                 current ? 'liquid-glass-current font-semibold' : ''
                               }`}
                             >

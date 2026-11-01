@@ -72,6 +72,7 @@ export default function AnimatedHero({
   return (
     <section
       ref={ref}
+      data-dark-section={videoUrl ? true : undefined}
       className={`relative flex h-[90vh] min-h-[600px] items-center justify-center overflow-hidden text-center ${
         videoUrl ? 'bg-slate-950' : ''
       }`}

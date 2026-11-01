@@ -80,7 +80,7 @@ function CaseCard({ project, featured }: { project: ProjectCase; featured: boole
 
 export default function ProjectCases({ projects }: { projects: ProjectCase[] }) {
   return (
-    <section className="bg-slate-950 pt-16 pb-28">
+    <section data-dark-section className="bg-slate-950 pt-16 pb-28">
       <div className="mx-auto max-w-6xl px-6">
         <div className="flex flex-wrap items-end justify-between gap-4">
           <h2 className="max-w-2xl text-4xl font-semibold tracking-tight text-white md:text-6xl">
