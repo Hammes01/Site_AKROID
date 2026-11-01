@@ -14,6 +14,7 @@ export default function AnimatedHero({
   cta: { href: string; label: string }
 }) {
   const ref = useRef<HTMLElement>(null)
+  const videoRef = useRef<HTMLVideoElement>(null)
   const shouldReduceMotion = useReducedMotion()
   const [mounted, setMounted] = useState(false)
 
@@ -21,6 +22,30 @@ export default function AnimatedHero({
     // eslint-disable-next-line react-hooks/set-state-in-effect -- necessário para evitar mismatch de hidratação entre servidor e cliente
     setMounted(true)
   }, [])
+
+  // O celular pode bloquear o autoplay (ex.: modo de economia de bateria do iPhone).
+  // Nesse caso, o vídeo começa no primeiro toque em qualquer ponto da página, e
+  // também volta a tocar quando o visitante retorna à aba.
+  useEffect(() => {
+    const video = videoRef.current
+    if (!video) return
+
+    const play = () => {
+      if (!video.paused || document.hidden) return
+      video.muted = true
+      video.play().catch(() => {})
+    }
+
+    play()
+    const gestures = ['touchend', 'click', 'keydown']
+    gestures.forEach((name) => window.addEventListener(name, play, { passive: true }))
+    document.addEventListener('visibilitychange', play)
+
+    return () => {
+      gestures.forEach((name) => window.removeEventListener(name, play))
+      document.removeEventListener('visibilitychange', play)
+    }
+  }, [videoUrl])
 
   const { scrollYProgress } = useScroll({
     target: ref,
@@ -53,13 +78,18 @@ export default function AnimatedHero({
     >
       {videoUrl && (
         <motion.video
+          ref={videoRef}
           src={videoUrl}
           autoPlay
           loop
           muted
           playsInline
+          disablePictureInPicture
+          disableRemotePlayback
+          aria-hidden="true"
+          tabIndex={-1}
           style={videoStyle}
-          className="absolute inset-0 h-full w-full object-cover"
+          className="hero-video pointer-events-none absolute inset-0 h-full w-full object-cover"
         />
       )}
 
