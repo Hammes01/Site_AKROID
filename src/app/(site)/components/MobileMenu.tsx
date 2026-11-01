@@ -26,9 +26,13 @@ function isCurrent(pathname: string, href: string) {
 export default function MobileMenu({
   links,
   tone,
+  compact,
+  onOpenChange,
 }: {
   links: { label: string; href: string }[]
   tone: GlassTone
+  compact: boolean
+  onOpenChange: (open: boolean) => void
 }) {
   const pathname = usePathname()
   const [open, setOpen] = useState(false)
@@ -40,6 +44,10 @@ export default function MobileMenu({
     // eslint-disable-next-line react-hooks/set-state-in-effect -- o portal usa document, que só existe no navegador
     setMounted(true)
   }, [])
+
+  useEffect(() => {
+    onOpenChange(open)
+  }, [open, onOpenChange])
 
   useEffect(() => {
     if (!open) return
@@ -66,7 +74,10 @@ export default function MobileMenu({
         aria-expanded={open}
         aria-controls="menu-celular"
         onClick={() => setOpen(!open)}
-        className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border transition-colors duration-300 md:hidden ${
+        className={`relative flex shrink-0 items-center justify-center border transition-all duration-300 ease-out motion-reduce:transition-none md:hidden ${
+          // Na barra recolhida o botão encolhe, mas a área de toque continua confortável
+          compact ? 'h-8 w-8 rounded-lg after:absolute after:-inset-1.5' : 'h-11 w-11 rounded-xl'
+        } ${
           tone === 'dark'
             ? 'border-white/35 bg-white/15 text-white'
             : 'border-slate-900/15 bg-white/30 text-slate-900'
