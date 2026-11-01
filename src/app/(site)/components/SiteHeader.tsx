@@ -50,7 +50,7 @@ export default function SiteHeader() {
     <header className="sticky top-0 z-50 px-3 pt-2 md:px-6">
       <div
         data-tone={tone}
-        className="liquid-glass relative mx-auto flex h-16 max-w-6xl items-center justify-between rounded-full pr-2.5 pl-5 transition-colors duration-300 md:h-18 md:pr-3 md:pl-7"
+        className="liquid-glass relative mx-auto flex h-16 max-w-6xl items-center justify-between rounded-2xl pr-2.5 pl-5 transition-colors duration-300 md:h-18 md:pr-3 md:pl-7"
       >
         <Link
           href="/"
@@ -92,7 +92,7 @@ export default function SiteHeader() {
         <div className="relative flex items-center gap-2">
           <Link
             href="/contato"
-            className={`rounded-full border px-4 py-2.5 text-sm font-medium whitespace-nowrap transition-colors duration-300 ${
+            className={`rounded-xl border px-4 py-2.5 text-sm font-medium whitespace-nowrap transition-colors duration-300 ${
               dark
                 ? 'border-white/35 bg-brand-400/30 text-white hover:bg-brand-400/45'
                 : 'border-brand-700/30 bg-brand-500/25 text-brand-900 hover:bg-brand-500/40'

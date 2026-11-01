@@ -66,7 +66,7 @@ export default function MobileMenu({
         aria-expanded={open}
         aria-controls="menu-celular"
         onClick={() => setOpen(!open)}
-        className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full border transition-colors duration-300 md:hidden ${
+        className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border transition-colors duration-300 md:hidden ${
           tone === 'dark'
             ? 'border-white/35 bg-white/15 text-white'
             : 'border-slate-900/15 bg-white/30 text-slate-900'
@@ -106,7 +106,7 @@ export default function MobileMenu({
                     animate={{ opacity: 1, scale: 1, y: 0 }}
                     exit={{ opacity: 0, scale: 0.6, y: -10 }}
                     transition={SPRING}
-                    className="liquid-glass liquid-glass-panel fixed top-20 right-3 z-60 w-[min(17.5rem,calc(100vw-1.5rem))] origin-top-right rounded-[1.75rem] p-2 outline-none"
+                    className="liquid-glass liquid-glass-panel fixed top-20 right-3 z-60 w-[min(17.5rem,calc(100vw-1.5rem))] origin-top-right rounded-2xl p-2 outline-none"
                   >
                     <ul className="relative">
                       {links.map((link) => {
@@ -118,7 +118,7 @@ export default function MobileMenu({
                               href={link.href}
                               aria-current={current ? 'page' : undefined}
                               onClick={() => setOpen(false)}
-                              className={`flex min-h-12 items-center justify-between gap-4 rounded-[1.25rem] px-4 text-[1.0625rem] transition-colors active:bg-white/25 ${
+                              className={`flex min-h-12 items-center justify-between gap-4 rounded-xl px-4 text-[1.0625rem] transition-colors active:bg-white/25 ${
                                 current ? 'liquid-glass-current font-semibold' : ''
                               }`}
                             >
