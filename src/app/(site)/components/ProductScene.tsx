@@ -6,6 +6,10 @@ import * as THREE from 'three'
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js'
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js'
 
+// Altura, em pixels, do topo do site e do bloco de texto mais a barra inferior no celular.
+const MOBILE_HEADER_HEIGHT = 72
+const MOBILE_TEXT_HEIGHT = 340
+
 // Interpola de 0 a 1 entre dois pontos do scroll, com início e fim suaves.
 function ramp(p: number, start: number, end: number) {
   const t = Math.min(1, Math.max(0, (p - start) / (end - start)))
@@ -381,9 +385,20 @@ export default function ProductScene({ progress }: { progress: MotionValue<numbe
       const viewHeight = 2 * camera.position.z * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2))
       const viewWidth = viewHeight * camera.aspect
 
-      // Desktop: objeto à direita do texto. Celular: objeto acima do texto.
-      stage.position.set(wide ? viewWidth * 0.2 : 0, wide ? 0 : viewHeight * 0.13, 0)
-      stage.scale.setScalar(wide ? 1 : Math.min(0.92, viewWidth / 3.6))
+      // Desktop: objeto à direita do texto. Celular: objeto no espaço entre o topo e o
+      // texto, que muda conforme a altura da tela (ex.: barras do Safari no iPhone).
+      if (wide) {
+        stage.position.set(viewWidth * 0.2, 0, 0)
+        stage.scale.setScalar(1)
+      } else {
+        const height = container.clientHeight
+        const freeHeight = Math.max(height - MOBILE_HEADER_HEIGHT - MOBILE_TEXT_HEIGHT, 1)
+        const centerFromTop = MOBILE_HEADER_HEIGHT + freeHeight / 2
+        stage.position.set(0, ((height / 2 - centerFromTop) / height) * viewHeight, 0)
+        stage.scale.setScalar(
+          Math.min(0.92, viewWidth / 3.6, ((freeHeight / height) * viewHeight) / 3.6)
+        )
+      }
 
       // Placa solar: sobe, gira, abre em camadas, fecha e sai pela esquerda
       const panelIn = ramp(p, 0.02, 0.2)

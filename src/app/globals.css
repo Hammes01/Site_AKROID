@@ -48,3 +48,65 @@ body {
   display: none !important;
   -webkit-appearance: none;
 }
+
+/* Vidro transparente da barra e do menu. As cores acompanham o fundo pelo atributo
+   data-tone, porque nenhuma cor única de texto é legível sobre o vídeo e o branco. */
+.liquid-glass {
+  -webkit-backdrop-filter: blur(24px) saturate(190%);
+  backdrop-filter: blur(24px) saturate(190%);
+  border: 1px solid transparent;
+}
+
+.liquid-glass[data-tone='dark'] {
+  color: #fff;
+  background: linear-gradient(145deg, rgb(15 23 42 / 0.2), rgb(15 23 42 / 0.3));
+  border-color: rgb(255 255 255 / 0.28);
+  box-shadow:
+    inset 0 1px 1px rgb(255 255 255 / 0.35),
+    inset 0 -1px 1px rgb(255 255 255 / 0.08),
+    0 12px 36px rgb(2 6 23 / 0.3);
+}
+
+.liquid-glass[data-tone='light'] {
+  color: #020617;
+  background: linear-gradient(145deg, rgb(255 255 255 / 0.5), rgb(255 255 255 / 0.3));
+  border-color: rgb(15 23 42 / 0.08);
+  box-shadow:
+    inset 0 1px 1px rgb(255 255 255 / 0.9),
+    0 8px 30px rgb(15 23 42 / 0.12);
+}
+
+/* O painel aberto tem mais texto, então precisa de um pouco mais de contraste */
+.liquid-glass-panel[data-tone='dark'] {
+  background: linear-gradient(145deg, rgb(15 23 42 / 0.42), rgb(15 23 42 / 0.55));
+}
+
+.liquid-glass-panel[data-tone='light'] {
+  background: linear-gradient(145deg, rgb(255 255 255 / 0.68), rgb(255 255 255 / 0.5));
+}
+
+/* Reflexo de luz na borda superior do vidro */
+.liquid-glass::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(180deg, rgb(255 255 255 / 0.16), transparent 40%);
+  pointer-events: none;
+}
+
+.liquid-glass-current {
+  background: rgb(255 255 255 / 0.2);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.4);
+}
+
+/* Se o navegador não tiver desfoque, o vidro vira um painel sólido legível */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .liquid-glass[data-tone='dark'] {
+    background: rgb(15 23 42 / 0.94);
+  }
+
+  .liquid-glass[data-tone='light'] {
+    background: rgb(255 255 255 / 0.96);
+  }
+}

@@ -52,7 +52,7 @@ export default async function HomePage() {
     : { href: '/contato', label: 'Solicitar orçamento' }
 
   return (
-    <div>
+    <div className="-mt-18 md:-mt-20">
       {/* HERO */}
       <AnimatedHero
         videoUrl={(heroSetting?.value as { url?: string } | null)?.url}
@@ -123,7 +123,7 @@ export default async function HomePage() {
       {/* FORMAS DE PAGAMENTO */}
       {sales.financingText && (
         <Reveal>
-          <section className="bg-brand-900 py-20 text-white">
+          <section data-dark-section className="bg-brand-900 py-20 text-white">
             <div className="mx-auto max-w-3xl px-6 text-center">
               <h2 className="text-4xl font-semibold tracking-tight md:text-5xl">
                 Formas de pagamento

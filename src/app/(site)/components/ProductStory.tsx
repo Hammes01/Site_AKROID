@@ -61,7 +61,7 @@ function Chapter({
   return (
     <motion.div
       style={{ opacity, y }}
-      className="absolute inset-x-0 bottom-[8svh] mx-auto max-w-6xl px-6 md:top-1/2 md:bottom-auto md:-translate-y-1/2"
+      className="absolute inset-x-0 bottom-24 mx-auto max-w-6xl px-6 md:top-1/2 md:bottom-auto md:-translate-y-1/2"
     >
       <div className="max-w-md">
         <p className="text-sm font-medium text-brand-300">{chapter.eyebrow}</p>
@@ -104,7 +104,7 @@ export default function ProductStory({ cta }: { cta: Cta }) {
 
   if (mounted && shouldReduceMotion) {
     return (
-      <section className="bg-slate-950 py-24">
+      <section data-dark-section className="bg-slate-950 py-24">
         <div className="mx-auto grid max-w-6xl gap-12 px-6 md:grid-cols-2">
           {CHAPTERS.map((chapter) => (
             <div key={chapter.title}>
@@ -127,7 +127,7 @@ export default function ProductStory({ cta }: { cta: Cta }) {
   }
 
   return (
-    <section ref={ref} className="relative h-[500svh] bg-slate-950">
+    <section ref={ref} data-dark-section className="relative h-[500svh] bg-slate-950">
       <div className="sticky top-0 h-svh overflow-hidden bg-[radial-gradient(ellipse_at_70%_45%,#1e293b_0%,#020617_68%)] max-md:bg-[radial-gradient(ellipse_at_50%_35%,#1e293b_0%,#020617_70%)]">
         {/* Faz a emenda com o fim do vídeo, sem linha visível entre as seções */}
         <div className="absolute inset-x-0 top-0 h-40 bg-linear-to-b from-slate-950 to-transparent" />
