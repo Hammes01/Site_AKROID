@@ -74,15 +74,26 @@ export default function SalesSettings() {
       return fail('O ID do Pixel da Meta deve ter só números.')
     }
 
-    const simulator = {
-      tariff: toNumber(form.get('tariff')),
-      generation_per_kwp: toNumber(form.get('generation_per_kwp')),
-      price_per_kwp: toNumber(form.get('price_per_kwp')),
+    const tariff = toNumber(form.get('tariff'))
+    const generationPerKwp = toNumber(form.get('generation_per_kwp'))
+    if (!tariff !== !generationPerKwp) {
+      return fail('Preencha tarifa e geração do simulador ou deixe as duas vazias.')
     }
-    const filled = Object.values(simulator).filter(Boolean).length
-    if (filled > 0 && filled < 3) {
-      return fail('Preencha tarifa, geração e preço do simulador ou deixe os três vazios.')
+
+    const priceMin = toNumber(form.get('price_per_kwp'))
+    const priceMax = toNumber(form.get('price_per_kwp_max'))
+    if (priceMax && !priceMin) return fail('Preencha o preço mínimo antes do máximo.')
+    if (priceMin && priceMax && priceMax < priceMin) {
+      return fail('O preço máximo não pode ser menor que o mínimo.')
     }
+    // A data aparece no site, então só muda quando os preços mudam
+    const pricesChanged =
+      priceMin !== initial?.price_per_kwp || priceMax !== initial?.price_per_kwp_max
+    const pricesUpdatedAt = priceMin
+      ? pricesChanged || !initial?.prices_updated_at
+        ? new Date().toISOString()
+        : initial.prices_updated_at
+      : undefined
 
     const savingsPercent = toNumber(form.get('savings_percent'))
     if ((savingsPercent ?? 0) > 100) return fail('A economia não pode passar de 100%.')
@@ -121,7 +132,11 @@ export default function SalesSettings() {
       card_installments: toNumber(form.get('card_installments')),
       ga_id: gaId,
       meta_pixel_id: metaPixelId,
-      ...simulator,
+      tariff,
+      generation_per_kwp: generationPerKwp,
+      price_per_kwp: priceMin,
+      price_per_kwp_max: priceMax,
+      prices_updated_at: pricesUpdatedAt,
       savings_percent: savingsPercent,
       panel_watts: toNumber(form.get('panel_watts')),
       min_kwh: toNumber(form.get('min_kwh')),
@@ -254,7 +269,7 @@ export default function SalesSettings() {
       <fieldset className="space-y-3">
         <legend className="text-sm font-semibold text-slate-300">Simulador de economia</legend>
         <p className="text-xs text-slate-500">
-          Só aparece com tarifa, geração e preço preenchidos. Os exemplos não são recomendações: use os valores reais de vocês.
+          Só aparece com tarifa e geração preenchidas. Os exemplos não são recomendações: use os valores reais de vocês.
         </p>
         <div className="grid gap-4 md:grid-cols-2">
           <div>
@@ -266,9 +281,24 @@ export default function SalesSettings() {
             <input id="generation_per_kwp" name="generation_per_kwp" type="number" step="any" min="0" defaultValue={initial.generation_per_kwp} placeholder="Ex.: 124,8" className={inputClass} />
             <p className="mt-1 text-xs text-slate-500">Sol × fator × 30. Ex.: 5,2 × 0,8 × 30 = 124,8</p>
           </div>
-          <div>
-            <label htmlFor="price_per_kwp" className="mb-1 block text-sm text-slate-300">Preço médio instalado (R$/kWp)</label>
-            <input id="price_per_kwp" name="price_per_kwp" type="number" step="any" min="0" defaultValue={initial.price_per_kwp} placeholder="Ex.: 3500" className={inputClass} />
+          <div className="space-y-2 md:col-span-2">
+            <p className="text-sm text-slate-300">Preço instalado (R$/kWp), opcional</p>
+            <div className="grid gap-4 md:grid-cols-2">
+              <div>
+                <label htmlFor="price_per_kwp" className="mb-1 block text-xs text-slate-400">Mínimo: equipamento mais em conta, frete urbano</label>
+                <input id="price_per_kwp" name="price_per_kwp" type="number" step="any" min="0" defaultValue={initial.price_per_kwp} placeholder="Ex.: 2600" className={inputClass} />
+              </div>
+              <div>
+                <label htmlFor="price_per_kwp_max" className="mb-1 block text-xs text-slate-400">Máximo: equipamento mais caro, frete rural</label>
+                <input id="price_per_kwp_max" name="price_per_kwp_max" type="number" step="any" min="0" defaultValue={initial.price_per_kwp_max} placeholder="Ex.: 3200" className={inputClass} />
+              </div>
+            </div>
+            <p className="text-xs text-slate-500">
+              O site mostra uma faixa arredondada em milhares (ex.: R$ 22 mil a R$ 28 mil) e a data em que vocês salvaram estes preços.
+              Vazio esconde o investimento e o retorno: o visitante vê só a economia.
+              {initial.prices_updated_at &&
+                ` Atualizados em ${new Date(initial.prices_updated_at).toLocaleDateString('pt-BR')}.`}
+            </p>
           </div>
           <div>
             <label htmlFor="savings_percent" className="mb-1 block text-sm text-slate-300">Ajuste de economia na conta (%), opcional</label>

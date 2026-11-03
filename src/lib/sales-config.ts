@@ -21,6 +21,8 @@ export type RawSalesConfig = {
   tariff?: number
   generation_per_kwp?: number
   price_per_kwp?: number
+  price_per_kwp_max?: number
+  prices_updated_at?: string
   savings_percent?: number
   panel_watts?: number
   min_kwh?: number
@@ -30,7 +32,10 @@ export type RawSalesConfig = {
 export type SimulatorConfig = {
   tariff: number
   generationPerKwp: number
-  pricePerKwp: number
+  // Sem preço, o simulador mostra só a economia e o investimento fica para a proposta
+  pricePerKwp: number | null
+  pricePerKwpMax: number | null
+  pricesUpdatedAt: string | null
   savingsPercent: number | null
   panelWatts: number | null
   minKwh: number
@@ -137,13 +142,15 @@ export function parseSalesConfig(value: unknown) {
     // Os IDs entram em um script, então só passam se tiverem o formato esperado
     gaId: gaId && isValidGaId(gaId) ? gaId : null,
     metaPixelId: metaPixelId && isValidMetaPixelId(metaPixelId) ? metaPixelId : null,
-    // O simulador só existe com tarifa, geração e preço definidos pela empresa
+    // O simulador só existe com tarifa e geração definidas pela empresa
     simulator:
-      tariff && generationPerKwp && pricePerKwp
+      tariff && generationPerKwp
         ? ({
             tariff,
             generationPerKwp,
             pricePerKwp,
+            pricePerKwpMax: pricePerKwp ? positive(raw.price_per_kwp_max) : null,
+            pricesUpdatedAt: pricePerKwp ? text(raw.prices_updated_at) : null,
             savingsPercent: positive(raw.savings_percent),
             panelWatts: positive(raw.panel_watts),
             minKwh: positive(raw.min_kwh) ?? DEFAULT_MIN_KWH,
