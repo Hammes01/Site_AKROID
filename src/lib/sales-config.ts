@@ -35,7 +35,6 @@ export type SimulatorConfig = {
   // Sem preço, o simulador mostra só a economia e o investimento fica para a proposta
   pricePerKwp: number | null
   pricePerKwpMax: number | null
-  pricesUpdatedAt: string | null
   savingsPercent: number | null
   panelWatts: number | null
   minKwh: number
@@ -149,9 +148,7 @@ export function parseSalesConfig(value: unknown) {
             tariff,
             generationPerKwp,
             pricePerKwp,
-            pricePerKwpMax: pricePerKwp ? positive(raw.price_per_kwp_max) : null,
-            pricesUpdatedAt: pricePerKwp ? text(raw.prices_updated_at) : null,
-            savingsPercent: positive(raw.savings_percent),
+            pricePerKwpMax: pricePerKwp ? positive(raw.price_per_kwp_max) : null,            savingsPercent: positive(raw.savings_percent),
             panelWatts: positive(raw.panel_watts),
             minKwh: positive(raw.min_kwh) ?? DEFAULT_MIN_KWH,
             annualMaintenance: positive(raw.annual_maintenance) ?? 0,
