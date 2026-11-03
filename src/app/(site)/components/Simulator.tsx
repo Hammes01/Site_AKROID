@@ -60,8 +60,6 @@ export default function Simulator({ config }: { config: SimulatorConfig }) {
           priceMax: config.pricePerKwpMax,
         })
       : null
-  const pricesDate = config.pricesUpdatedAt ? new Date(config.pricesUpdatedAt) : null
-
   function handleChange(value: string) {
     setBill(value)
     if (!usedRef.current) {
@@ -166,20 +164,6 @@ export default function Simulator({ config }: { config: SimulatorConfig }) {
                 {' '}O investimento muda com a marca dos equipamentos, o preço do momento e{' '}
                 <strong className="font-semibold text-brand-300">o frete</strong>, que depende de onde
                 você mora (cidade ou zona rural).
-              </>
-            )}
-            {range && pricesDate && (
-              <>
-                {' '}
-                <strong className="font-semibold text-brand-300">
-                  Preços de referência de{' '}
-                  {pricesDate.toLocaleDateString('pt-BR', {
-                    month: 'long',
-                    year: 'numeric',
-                    timeZone: 'America/Cuiaba',
-                  })}
-                  .
-                </strong>
               </>
             )}{' '}
             <strong className="font-semibold text-brand-300">O valor exato sai na proposta</strong>,

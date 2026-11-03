@@ -86,7 +86,7 @@ export default function SalesSettings() {
     if (priceMin && priceMax && priceMax < priceMin) {
       return fail('O preço máximo não pode ser menor que o mínimo.')
     }
-    // A data aparece no site, então só muda quando os preços mudam
+    // Data só para o admin saber quando os preços foram revistos
     const pricesChanged =
       priceMin !== initial?.price_per_kwp || priceMax !== initial?.price_per_kwp_max
     const pricesUpdatedAt = priceMin
@@ -294,7 +294,7 @@ export default function SalesSettings() {
               </div>
             </div>
             <p className="text-xs text-slate-500">
-              O site mostra uma faixa arredondada em milhares (ex.: R$ 22 mil a R$ 28 mil) e a data em que vocês salvaram estes preços.
+              O site mostra uma faixa arredondada em milhares (ex.: R$ 22 mil a R$ 28 mil).
               Vazio esconde o investimento e o retorno: o visitante vê só a economia.
               {initial.prices_updated_at &&
                 ` Atualizados em ${new Date(initial.prices_updated_at).toLocaleDateString('pt-BR')}.`}
