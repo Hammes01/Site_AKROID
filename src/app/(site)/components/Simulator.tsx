@@ -160,17 +160,30 @@ export default function Simulator({ config }: { config: SimulatorConfig }) {
           )}
 
           <p className="mt-6 text-xs text-slate-400">
-            Estimativa, não é proposta.
-            {range &&
-              ' O investimento muda com a marca dos equipamentos, o preço do momento e o frete, que depende de onde você mora (cidade ou zona rural).'}
-            {range &&
-              pricesDate &&
-              ` Preços de referência de ${pricesDate.toLocaleDateString('pt-BR', {
-                month: 'long',
-                year: 'numeric',
-                timeZone: 'America/Cuiaba',
-              })}.`}
-            {' '}O valor exato sai na proposta, depois da visita técnica.
+            <strong className="font-semibold text-brand-300">Estimativa, não é proposta.</strong>
+            {range && (
+              <>
+                {' '}O investimento muda com a marca dos equipamentos, o preço do momento e{' '}
+                <strong className="font-semibold text-brand-300">o frete</strong>, que depende de onde
+                você mora (cidade ou zona rural).
+              </>
+            )}
+            {range && pricesDate && (
+              <>
+                {' '}
+                <strong className="font-semibold text-brand-300">
+                  Preços de referência de{' '}
+                  {pricesDate.toLocaleDateString('pt-BR', {
+                    month: 'long',
+                    year: 'numeric',
+                    timeZone: 'America/Cuiaba',
+                  })}
+                  .
+                </strong>
+              </>
+            )}{' '}
+            <strong className="font-semibold text-brand-300">O valor exato sai na proposta</strong>,
+            depois da visita técnica.
             {!config.savingsPercent &&
               ' Este cálculo não inclui a cobrança do Fio B nem variações de tarifa.'}
           </p>
