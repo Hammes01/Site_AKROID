@@ -4,6 +4,7 @@ import { parseSalesConfig } from '@/lib/sales-config'
 import AboutSection from './components/AboutSection'
 import AnimatedHero from './components/AnimatedHero'
 import Faq from './components/Faq'
+import InverterCompare, { type FeaturedProject } from './components/InverterCompare'
 import KitsAndPayment, { type HomeKit } from './components/KitsAndPayment'
 import ProductStory from './components/ProductStory'
 import ProjectCases, {
@@ -13,6 +14,10 @@ import ProjectCases, {
 } from './components/ProjectCases'
 import Reveal from './components/Reveal'
 import Simulator from './components/Simulator'
+
+// Projeto indicado no fim do quiz de inversores (Rodrigo Diniz, Ribeirão Cascalheira).
+// Se o endereço mudar no admin, troque aqui; enquanto não achar, o link fica escondido.
+const QUIZ_PROJECT_SLUG = 'instalacao-antonio'
 
 export default async function HomePage() {
   const supabase = await createClient()
@@ -24,6 +29,7 @@ export default async function HomePage() {
     { data: projects },
     { data: testimonials },
     { data: results },
+    { data: quizProject },
   ] = await Promise.all([
     supabase.from('site_settings').select('value').eq('key', 'hero_video').maybeSingle(),
     supabase.from('site_settings').select('value').eq('key', 'sales_config').maybeSingle(),
@@ -43,6 +49,12 @@ export default async function HomePage() {
     supabase.from('testimonials').select('*').eq('is_published', true).limit(12),
     // Só retorna linhas que o admin ativou; a regra do banco barra as demais
     supabase.from('project_results').select('project_id, bill_before, bill_after'),
+    supabase
+      .from('projects')
+      .select('title, slug, city')
+      .eq('status', 'published')
+      .eq('slug', QUIZ_PROJECT_SLUG)
+      .maybeSingle(),
   ])
 
   const sales = parseSalesConfig(salesSetting?.value)
@@ -61,7 +73,10 @@ export default async function HomePage() {
       />
 
       {/* PRODUTOS ANIMADOS PELO SCROLL */}
-      <ProductStory cta={cta} />
+      <ProductStory />
+
+      {/* INVERSOR STRING X MICROINVERSOR */}
+      <InverterCompare cta={cta} project={(quizProject as FeaturedProject | null) ?? null} />
 
       {/* CASES E DEPOIMENTOS */}
       <ProjectCases

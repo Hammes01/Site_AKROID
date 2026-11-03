@@ -1,5 +1,13 @@
+import Link from 'next/link'
+
 // Respostas gerais de propósito: nada de prazos ou garantias que dependam de cada proposta.
-const QUESTIONS = [
+const QUESTIONS: { question: string; answer: string; link?: { href: string; label: string } }[] = [
+  {
+    question: 'Microinversor ou inversor string, qual é melhor para mim?',
+    answer:
+      'Depende do telhado. O microinversor é ideal para telhados com sombra ou várias orientações; o inversor string tem ótimo custo em sistemas grandes e sem sombra. Na visita técnica indicamos o que faz mais sentido no seu caso.',
+    link: { href: '/#inversores', label: 'Compare os dois na simulação' },
+  },
   {
     question: 'Em quanto tempo o sistema se paga?',
     answer:
@@ -49,6 +57,11 @@ export default function Faq() {
                 </span>
               </summary>
               <p className="mt-3 text-slate-600">{item.answer}</p>
+              {item.link && (
+                <Link href={item.link.href} className="mt-2 inline-block font-medium text-brand-700 hover:text-brand-800">
+                  {item.link.label} →
+                </Link>
+              )}
             </details>
           ))}
         </div>
