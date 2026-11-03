@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { useActionState, useRef, useState } from 'react'
 import { PRIVACY_POLICY_PUBLISHED } from '@/lib/privacy'
 import type { SimulatorConfig } from '@/lib/sales-config'
-import { calcSystem } from '@/lib/solar-calc'
+import { calcSystem, estimateRange } from '@/lib/solar-calc'
 import { trackEvent, trackLead } from '@/lib/track'
 import { submitLead } from '../contato/actions'
 
@@ -20,6 +20,20 @@ function brl(value: number) {
   })
 }
 
+// 22000 → "R$ 22 mil"
+function thousands(value: number) {
+  return `R$ ${(value / 1000).toLocaleString('pt-BR', { maximumFractionDigits: 0 })} mil`
+}
+
+function years(value: number) {
+  return value.toLocaleString('pt-BR', { maximumFractionDigits: 1 })
+}
+
+function fromTo(min: number, max: number, format: (value: number) => string) {
+  const [low, high] = [format(min), format(max)]
+  return low === high ? low : `${low} a ${high}`
+}
+
 export default function Simulator({ config }: { config: SimulatorConfig }) {
   const [bill, setBill] = useState('500')
   const usedRef = useRef(false)
@@ -33,7 +47,20 @@ export default function Simulator({ config }: { config: SimulatorConfig }) {
   )
 
   const billValue = Number(bill)
-  const result = billValue > 0 ? calcSystem({ ...config, monthlyBill: billValue }) : null
+  const result =
+    billValue > 0
+      ? calcSystem({ ...config, pricePerKwp: config.pricePerKwp ?? 0, monthlyBill: billValue })
+      : null
+  const range =
+    result && config.pricePerKwp
+      ? estimateRange({
+          systemKwp: result.systemKwp,
+          netYearlySavings: result.netYearlySavings,
+          priceMin: config.pricePerKwp,
+          priceMax: config.pricePerKwpMax,
+        })
+      : null
+  const pricesDate = config.pricesUpdatedAt ? new Date(config.pricesUpdatedAt) : null
 
   function handleChange(value: string) {
     setBill(value)
@@ -101,18 +128,31 @@ export default function Simulator({ config }: { config: SimulatorConfig }) {
                     )}
                   </dd>
                 </div>
-                <div>
-                  <dt className="text-xs text-slate-400">Investimento estimado</dt>
-                  <dd className="mt-1 text-lg font-semibold">{brl(result.investment)}</dd>
-                </div>
-                <div>
-                  <dt className="text-xs text-slate-400">Retorno estimado</dt>
-                  <dd className="mt-1 text-lg font-semibold">
-                    {result.paybackYears === null
-                      ? '—'
-                      : `${result.paybackYears.toLocaleString('pt-BR', { maximumFractionDigits: 1 })} anos`}
-                  </dd>
-                </div>
+                {range ? (
+                  <>
+                    <div>
+                      <dt className="text-xs text-slate-400">Investimento aproximado</dt>
+                      <dd className="mt-1 text-lg font-semibold">
+                        {fromTo(range.investmentMin, range.investmentMax, thousands)}
+                      </dd>
+                    </div>
+                    <div>
+                      <dt className="text-xs text-slate-400">Retorno estimado</dt>
+                      <dd className="mt-1 text-lg font-semibold">
+                        {range.paybackMin === null || range.paybackMax === null
+                          ? '—'
+                          : `${fromTo(range.paybackMin, range.paybackMax, years)} anos`}
+                      </dd>
+                    </div>
+                  </>
+                ) : (
+                  <div className="col-span-2">
+                    <dt className="text-xs text-slate-400">Investimento</dt>
+                    <dd className="mt-1 text-slate-200">
+                      O valor sai na proposta, com os equipamentos do dia e o frete até o local da instalação.
+                    </dd>
+                  </div>
+                )}
               </dl>
             </>
           ) : (
@@ -120,10 +160,32 @@ export default function Simulator({ config }: { config: SimulatorConfig }) {
           )}
 
           <p className="mt-6 text-xs text-slate-400">
-            Estimativa, não é proposta. O valor final depende da visita técnica e da
-            proposta.
+            <strong className="font-semibold text-brand-300">Estimativa, não é proposta.</strong>
+            {range && (
+              <>
+                {' '}O investimento muda com a marca dos equipamentos, o preço do momento e{' '}
+                <strong className="font-semibold text-brand-300">o frete</strong>, que depende de onde
+                você mora (cidade ou zona rural).
+              </>
+            )}
+            {range && pricesDate && (
+              <>
+                {' '}
+                <strong className="font-semibold text-brand-300">
+                  Preços de referência de{' '}
+                  {pricesDate.toLocaleDateString('pt-BR', {
+                    month: 'long',
+                    year: 'numeric',
+                    timeZone: 'America/Cuiaba',
+                  })}
+                  .
+                </strong>
+              </>
+            )}{' '}
+            <strong className="font-semibold text-brand-300">O valor exato sai na proposta</strong>,
+            depois da visita técnica.
             {!config.savingsPercent &&
-              ' Este cálculo não inclui a cobrança do Fio B nem variações de tarifa e de preço dos equipamentos.'}
+              ' Este cálculo não inclui a cobrança do Fio B nem variações de tarifa.'}
           </p>
 
           {state.success ? (

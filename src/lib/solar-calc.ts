@@ -68,6 +68,32 @@ export function calcSystem({
     investment,
     monthlySavings,
     yearlySavings,
+    netYearlySavings,
     paybackYears,
+  }
+}
+
+// Faixa mostrada no site: o preço muda com os equipamentos, o momento e o frete.
+// Arredonda para fora, em milhares, para não passar uma precisão que não existe.
+export function estimateRange({
+  systemKwp,
+  netYearlySavings,
+  priceMin,
+  priceMax = null,
+}: {
+  systemKwp: number
+  netYearlySavings: number
+  priceMin: number
+  priceMax?: number | null
+}) {
+  const investmentMin = Math.floor((systemKwp * priceMin) / 1000) * 1000
+  const investmentMax = Math.ceil((systemKwp * Math.max(priceMax ?? priceMin, priceMin)) / 1000) * 1000
+  const payback = (investment: number) => (netYearlySavings > 0 ? investment / netYearlySavings : null)
+
+  return {
+    investmentMin,
+    investmentMax,
+    paybackMin: payback(investmentMin),
+    paybackMax: payback(investmentMax),
   }
 }

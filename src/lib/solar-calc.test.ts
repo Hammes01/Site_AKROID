@@ -1,6 +1,11 @@
 import assert from 'node:assert/strict'
 import { describe, it } from 'node:test'
-import { calcSystem, maxMonthlyBillForSystem, monthlyGenerationPerKwp } from './solar-calc.ts'
+import {
+  calcSystem,
+  estimateRange,
+  maxMonthlyBillForSystem,
+  monthlyGenerationPerKwp,
+} from './solar-calc.ts'
 
 const base = {
   generationPerKwp: 124.8,
@@ -107,6 +112,28 @@ describe('calcSystem: regras', () => {
 
   it('não mostra retorno quando a economia não cobre a manutenção', () => {
     assert.equal(calcSystem({ ...bill1000, annualMaintenance: 20000 }).paybackYears, null)
+  })
+
+  it('faixa usa preço mínimo e máximo e arredonda para fora em milhares', () => {
+    const { systemKwp, netYearlySavings } = calcSystem(bill1000)
+    const range = estimateRange({ systemKwp, netYearlySavings, priceMin: 2600, priceMax: 3200 })
+    assert.equal(range.investmentMin, 22000)
+    assert.equal(range.investmentMax, 28000)
+    near(range.paybackMin, 22000 / netYearlySavings)
+    near(range.paybackMax, 28000 / netYearlySavings)
+  })
+
+  it('faixa com um preço só fica no milhar de cima e de baixo', () => {
+    const { systemKwp, netYearlySavings } = calcSystem(bill1000)
+    const range = estimateRange({ systemKwp, netYearlySavings, priceMin: 2600 })
+    assert.equal(range.investmentMin, 22000)
+    assert.equal(range.investmentMax, 23000)
+  })
+
+  it('faixa ignora máximo menor que o mínimo e não mostra retorno sem economia', () => {
+    const range = estimateRange({ systemKwp: 10, netYearlySavings: 0, priceMin: 3000, priceMax: 2000 })
+    assert.equal(range.investmentMax, 30000)
+    assert.equal(range.paybackMin, null)
   })
 
   it('não mostra retorno quando o consumo não passa da taxa mínima', () => {
