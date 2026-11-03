@@ -20,49 +20,70 @@ function mix(a: number, b: number, t: number) {
   return a + (b - a) * t
 }
 
-// Textura das células: 6 x 10 células monocristalinas, com barramentos e dedos de prata.
-function createCellTexture() {
+// Medidas reais do módulo (datasheet Canadian CS7N-715TB-AG): 2384 x 1303 x 33 mm
+const PANEL_HEIGHT = 3.6
+const MM = PANEL_HEIGHT / 2384
+const PANEL_WIDTH = 1303 * MM
+const FRAME_DEPTH = 33 * MM
+const FRAME_FACE = 20 * MM
+
+// Bifacial vidro-vidro (ex.: Canadian) ou vidro + backsheet transparente (ex.: BYD)
+export type PanelVariant = 'vidro' | 'backsheet'
+
+// Textura das células: 132 meias-células TOPCon em 2 x (11 x 6), com multibusbar fino.
+// Os vãos são pintados escuros: com transparência, as células sumiriam de longe.
+function createCellTexture(aspect: number) {
   const cols = 6
-  const rows = 10
-  const size = 170
+  const rowsPerHalf = 11
+  const cellWidth = 160
+  const cellHeight = 80
+  const gap = 4
+  const margin = 12
+  const width = cols * cellWidth + margin * 2
+  const height = Math.round(width * aspect)
+  // Faixa do meio, onde ficam as fitas de interligação e, atrás, a caixa de junção
+  const middle = height - rowsPerHalf * 2 * cellHeight - margin * 2
+
   const canvas = document.createElement('canvas')
-  canvas.width = cols * size
-  canvas.height = rows * size
+  canvas.width = width
+  canvas.height = height
   const ctx = canvas.getContext('2d')!
 
-  ctx.fillStyle = '#8f9aa6'
-  ctx.fillRect(0, 0, canvas.width, canvas.height)
+  ctx.fillStyle = '#272e38'
+  ctx.fillRect(0, 0, width, height)
 
-  for (let col = 0; col < cols; col++) {
-    for (let row = 0; row < rows; row++) {
-      const x = col * size + 3
-      const y = row * size + 3
-      const s = size - 6
+  const middleTop = margin + rowsPerHalf * cellHeight
+  ctx.fillStyle = '#1c2128'
+  ctx.fillRect(margin, middleTop, width - margin * 2, middle)
+  ctx.fillStyle = 'rgba(205, 212, 220, 0.55)'
+  ctx.fillRect(margin, middleTop + middle * 0.3, width - margin * 2, 3)
+  ctx.fillRect(margin, middleTop + middle * 0.7 - 3, width - margin * 2, 3)
 
-      const gradient = ctx.createLinearGradient(x, y, x + s, y + s)
-      gradient.addColorStop(0, '#071022')
-      gradient.addColorStop(1, '#0e1c3a')
-      ctx.fillStyle = gradient
-      ctx.fillRect(x, y, s, s)
+  for (let half = 0; half < 2; half++) {
+    for (let row = 0; row < rowsPerHalf; row++) {
+      for (let col = 0; col < cols; col++) {
+        const x = margin + col * cellWidth + gap / 2
+        const y = margin + half * (rowsPerHalf * cellHeight + middle) + row * cellHeight + gap / 2
+        const w = cellWidth - gap
+        const h = cellHeight - gap
 
-      ctx.strokeStyle = 'rgba(190, 205, 225, 0.07)'
-      ctx.lineWidth = 1
-      for (let i = 4; i < s; i += 5) {
-        ctx.beginPath()
-        ctx.moveTo(x, y + i)
-        ctx.lineTo(x + s, y + i)
-        ctx.stroke()
-      }
+        ctx.fillStyle = '#050d22'
+        ctx.fillRect(x, y, w, h)
 
-      ctx.fillStyle = 'rgba(225, 232, 240, 0.5)'
-      for (let i = 1; i <= 4; i++) {
-        ctx.fillRect(x + (s * i) / 5 - 1, y, 2, s)
+        // Dedos de coleta, quase invisíveis
+        ctx.fillStyle = 'rgba(170, 185, 210, 0.05)'
+        for (let i = 2; i < h; i += 3) ctx.fillRect(x, y + i, w, 1)
+
+        // Multibusbar: muitos fios finos no sentido da string
+        ctx.fillStyle = 'rgba(200, 210, 225, 0.11)'
+        for (let i = 1; i <= 16; i++) ctx.fillRect(x + (w * i) / 17, y, 1, h)
       }
     }
   }
 
   const texture = new THREE.CanvasTexture(canvas)
   texture.colorSpace = THREE.SRGBColorSpace
+  texture.anisotropy = 4
   return texture
 }
 
@@ -87,11 +108,11 @@ function createDisplayTexture() {
   return texture
 }
 
-function createCable(points: [number, number, number][], material: THREE.Material) {
+function createCable(points: [number, number, number][], material: THREE.Material, radius = 0.028) {
   const curve = new THREE.CatmullRomCurve3(
     points.map(([x, y, z]) => new THREE.Vector3(x, y, z))
   )
-  return new THREE.Mesh(new THREE.TubeGeometry(curve, 48, 0.028, 10), material)
+  return new THREE.Mesh(new THREE.TubeGeometry(curve, 48, radius, 10), material)
 }
 
 function createConnector(material: THREE.Material) {
@@ -104,8 +125,8 @@ function createConnector(material: THREE.Material) {
 }
 
 function createPanel() {
-  const width = 2.1
-  const height = 3.5
+  const width = PANEL_WIDTH - FRAME_FACE * 2
+  const height = PANEL_HEIGHT - FRAME_FACE * 2
   const group = new THREE.Group()
 
   const layer = (material: THREE.Material, thickness: number) => {
@@ -114,6 +135,8 @@ function createPanel() {
     return mesh
   }
 
+  // Vidro frontal com antirreflexo: 2,0 mm no vidro-vidro e 3,2 mm no de backsheet.
+  // As espessuras são exageradas para aparecer, mantendo a proporção entre elas.
   const glass = layer(
     new THREE.MeshPhysicalMaterial({
       color: 0xdff2ff,
@@ -124,7 +147,7 @@ function createPanel() {
       clearcoat: 1,
       envMapIntensity: 0.9,
     }),
-    0.018
+    0.01
   )
   const encapsulant = new THREE.MeshStandardMaterial({
     color: 0xf1f5f9,
@@ -132,72 +155,92 @@ function createPanel() {
     transparent: true,
     opacity: 0,
   })
-  const frontEva = layer(encapsulant, 0.01)
+  const frontEncapsulant = layer(encapsulant, 0.004)
   const cells = layer(
     new THREE.MeshPhysicalMaterial({
-      map: createCellTexture(),
-      metalness: 0.2,
-      roughness: 0.42,
-      clearcoat: 0.35,
-      clearcoatRoughness: 0.2,
-      envMapIntensity: 0.45,
+      map: createCellTexture(height / width),
+      // O antirreflexo das células devolve um reflexo azulado, não branco
+      metalness: 0,
+      roughness: 0.4,
+      specularIntensity: 0.6,
+      specularColor: 0x3a5cc4,
+      envMapIntensity: 0.25,
     }),
-    0.012
+    0.004
   )
-  const backEva = layer(encapsulant, 0.01)
-  const backsheet = layer(new THREE.MeshStandardMaterial({ color: 0xe8ebee, roughness: 0.75 }), 0.012)
+  const backEncapsulant = layer(encapsulant, 0.004)
 
-  const aluminum = new THREE.MeshStandardMaterial({ color: 0xc4c9cf, metalness: 1, roughness: 0.34 })
+  // Traseira transparente nas duas variantes: dá para ver as células por trás
+  const backGlass = new THREE.MeshPhysicalMaterial({
+    color: 0xdff2ff,
+    metalness: 0,
+    roughness: 0.04,
+    transparent: true,
+    opacity: 0.1,
+    clearcoat: 1,
+    envMapIntensity: 0.9,
+  })
+  const clearBacksheet = new THREE.MeshStandardMaterial({
+    color: 0xeef3f6,
+    roughness: 0.6,
+    transparent: true,
+    opacity: 0.16,
+  })
+  const back = layer(backGlass, 0.01)
+
+  const aluminum = new THREE.MeshStandardMaterial({ color: 0x9aa1a9, metalness: 0.8, roughness: 0.55 })
   const blackPlastic = new THREE.MeshStandardMaterial({ color: 0x14171a, roughness: 0.55 })
 
   const frame = new THREE.Group()
-  const bar = 0.06
-  const depth = 0.13
   const rails: [number, number, number, number][] = [
-    [width + bar * 2, bar, 0, height / 2 + bar / 2],
-    [width + bar * 2, bar, 0, -height / 2 - bar / 2],
-    [bar, height, width / 2 + bar / 2, 0],
-    [bar, height, -width / 2 - bar / 2, 0],
+    [PANEL_WIDTH, FRAME_FACE, 0, (height + FRAME_FACE) / 2],
+    [PANEL_WIDTH, FRAME_FACE, 0, -(height + FRAME_FACE) / 2],
+    [FRAME_FACE, height, (width + FRAME_FACE) / 2, 0],
+    [FRAME_FACE, height, -(width + FRAME_FACE) / 2, 0],
   ]
   rails.forEach(([w, h, x, y]) => {
-    const rail = new THREE.Mesh(new THREE.BoxGeometry(w, h, depth), aluminum)
-    rail.position.set(x, y, -0.02)
+    const rail = new THREE.Mesh(new THREE.BoxGeometry(w, h, FRAME_DEPTH), aluminum)
+    rail.position.set(x, y, 0)
     frame.add(rail)
   })
   group.add(frame)
 
-  // Caixa de junção e cabos ficam presos ao backsheet
-  const junction = new THREE.Mesh(new RoundedBoxGeometry(0.42, 0.26, 0.09, 3, 0.02), blackPlastic)
-  junction.position.set(0, 1.2, -0.05)
-  const leftCable = createCable(
-    [
-      [-0.12, 1.2, -0.06],
-      [-0.42, 1.1, -0.1],
-      [-0.5, 0.5, -0.12],
-      [-0.44, 0.1, -0.1],
-    ],
-    blackPlastic
-  )
-  const rightCable = createCable(
-    [
-      [0.12, 1.2, -0.06],
-      [0.42, 1.1, -0.1],
-      [0.5, 0.5, -0.12],
-      [0.44, 0.1, -0.1],
-    ],
-    blackPlastic
-  )
-  backsheet.add(junction, leftCable, rightCable)
+  // Caixa de junção IP68 dividida em três (uma por diodo de bypass), atrás da faixa do
+  // meio. Cabos curtos (360 mm e 200 mm) com conectores.
+  ;[-0.55, 0, 0.55].forEach((x) => {
+    const box = new THREE.Mesh(new RoundedBoxGeometry(0.16, 0.09, 0.025, 2, 0.008), blackPlastic)
+    box.position.set(x, 0, -0.018)
+    back.add(box)
+  })
+  const cables: { points: [number, number, number][]; end: [number, number] }[] = [
+    { points: [[-0.63, 0, -0.02], [-0.76, -0.04, -0.03], [-0.8, -0.25, -0.03], [-0.78, -0.5, -0.03]], end: [-0.78, -0.56] },
+    { points: [[0.63, 0, -0.02], [0.74, -0.04, -0.03], [0.77, -0.22, -0.03]], end: [0.77, -0.28] },
+  ]
+  cables.forEach(({ points, end }) => {
+    back.add(createCable(points, blackPlastic, 0.01))
+    const connector = createConnector(blackPlastic)
+    connector.scale.setScalar(0.4)
+    connector.position.set(end[0], end[1], -0.03)
+    back.add(connector)
+  })
 
-  const layers = [
-    { mesh: glass, assembled: 0.03, exploded: 1.5 },
-    { mesh: frontEva, assembled: 0.018, exploded: 0.85 },
-    { mesh: cells, assembled: 0.006, exploded: 0.2 },
-    { mesh: backEva, assembled: -0.006, exploded: -0.42 },
-    { mesh: backsheet, assembled: -0.018, exploded: -1.05 },
+  const layers: { mesh: THREE.Object3D; assembled: number; exploded: number }[] = [
+    { mesh: glass, assembled: 0.012, exploded: 1.5 },
+    { mesh: frontEncapsulant, assembled: 0.006, exploded: 0.85 },
+    { mesh: cells, assembled: 0, exploded: 0.2 },
+    { mesh: backEncapsulant, assembled: -0.006, exploded: -0.42 },
+    { mesh: back, assembled: -0.012, exploded: -1.05 },
+    { mesh: frame, assembled: 0, exploded: -1.45 },
   ]
 
-  return { group, layers, encapsulant }
+  const setVariant = (variant: PanelVariant) => {
+    const glassBack = variant === 'vidro'
+    back.material = glassBack ? backGlass : clearBacksheet
+    back.scale.z = glassBack ? 1 : 0.4
+    glass.scale.z = glassBack ? 1 : 1.6
+  }
+
+  return { group, layers, encapsulant, setVariant, extraMaterials: [backGlass, clearBacksheet] }
 }
 
 function createInverter() {
@@ -261,78 +304,139 @@ function createInverter() {
   return group
 }
 
+// Microinversor de 4 módulos, como nos datasheets (Hoymiles HMS-2250DW-4T e Growatt
+// NEO 2250M-X2): corpo preto de 386 x 192 x 45,6 mm, suporte de fixação em cima, antena
+// Wi-Fi, quatro pares de cabos CC com conectores e o cabo CA com conector próprio.
 function createMicroinverter() {
+  const mm = 2 / 386
+  const width = 386 * mm
+  const height = 192 * mm
+  const depth = 45.6 * mm
+
   const group = new THREE.Group()
-  const anodized = new THREE.MeshStandardMaterial({ color: 0x3b4148, metalness: 0.9, roughness: 0.4 })
-  const cableMaterial = new THREE.MeshStandardMaterial({ color: 0x101316, roughness: 0.55 })
+  const housing = new THREE.MeshStandardMaterial({ color: 0x1a1d21, metalness: 0.35, roughness: 0.55 })
+  const bracketMetal = new THREE.MeshStandardMaterial({ color: 0x15171a, metalness: 0.6, roughness: 0.45 })
+  const cableMaterial = new THREE.MeshStandardMaterial({ color: 0x0e1012, roughness: 0.6 })
+  const screwMetal = new THREE.MeshStandardMaterial({ color: 0x6b7280, metalness: 0.9, roughness: 0.35 })
 
-  group.add(new THREE.Mesh(new RoundedBoxGeometry(2, 1.45, 0.3, 5, 0.05), anodized))
+  group.add(new THREE.Mesh(new RoundedBoxGeometry(width, height, depth, 4, 0.03), housing))
 
-  // Aletas de dissipação na face superior
-  for (let i = 0; i < 12; i++) {
-    const rib = new THREE.Mesh(new THREE.BoxGeometry(1.74, 0.05, 0.075), anodized)
-    rib.position.set(0, -0.6 + i * 0.109, 0.175)
-    group.add(rib)
-  }
-
-  // Abas de fixação no trilho
-  ;[-1.18, 1.18].forEach((x) => {
-    const ear = new THREE.Mesh(new RoundedBoxGeometry(0.42, 0.52, 0.05, 3, 0.02), anodized)
-    ear.position.set(x, 0, -0.12)
-    const hole = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.06, 0.06, 0.06, 20),
-      new THREE.MeshStandardMaterial({ color: 0x05070a, roughness: 0.9 })
-    )
-    hole.rotation.x = Math.PI / 2
-    hole.position.set(x > 0 ? 0.06 : -0.06, 0, 0.002)
-    ear.add(hole)
-    group.add(ear)
-  })
-
-  const led = new THREE.Mesh(
-    new THREE.SphereGeometry(0.025, 16, 12),
-    new THREE.MeshStandardMaterial({ color: 0x7cc943, emissive: 0x7cc943, emissiveIntensity: 0.9 })
+  // Tampa frontal levemente rebaixada, presa por parafusos nas bordas
+  const lid = new THREE.Mesh(
+    new RoundedBoxGeometry(width - 0.12, height - 0.12, 0.02, 3, 0.008),
+    new THREE.MeshStandardMaterial({ color: 0x202429, metalness: 0.3, roughness: 0.6 })
   )
-  led.position.set(0.86, -0.665, 0.14)
-  group.add(led)
-
-  // Dois pares de cabos CC saindo por cima e o cabo CA pela base
-  ;[-0.65, -0.35, 0.35, 0.65].forEach((x, i) => {
-    const side = x < 0 ? -1 : 1
-    const reach = i % 3 === 0 ? 1.15 : 0.82
-    group.add(
-      createCable(
-        [
-          [x, 0.72, 0],
-          [x + side * 0.05, 1.02, 0.03],
-          [x + side * 0.28, 1.32, -0.06],
-          [x + side * reach * 0.62, 1.52, -0.02],
-        ],
-        cableMaterial
-      )
-    )
-    const connector = createConnector(cableMaterial)
-    connector.position.set(x + side * reach * 0.62 + side * 0.08, 1.57, -0.02)
-    connector.rotation.z = -side * 1.05
-    group.add(connector)
+  lid.position.z = depth / 2
+  group.add(lid)
+  const screwGeometry = new THREE.CylinderGeometry(0.018, 0.018, 0.012, 12)
+  const screwSpots = [-0.92, -0.46, 0, 0.46, 0.92].flatMap((x) => [
+    [x, height / 2 - 0.03],
+    [x, -height / 2 + 0.03],
+  ])
+  screwSpots.forEach(([x, y]) => {
+    const screw = new THREE.Mesh(screwGeometry, screwMetal)
+    screw.rotation.x = Math.PI / 2
+    screw.position.set(x, y, depth / 2 + 0.002)
+    group.add(screw)
   })
+
+  // Suporte de fixação em chapa: recorte de alça no centro e dois rasgos nas pontas
+  const bracketShape = new THREE.Shape()
+  bracketShape.moveTo(-0.5, -0.3)
+  bracketShape.lineTo(0.5, -0.3)
+  bracketShape.lineTo(0.5, 0.32)
+  bracketShape.quadraticCurveTo(0.5, 0.4, 0.42, 0.4)
+  bracketShape.lineTo(-0.42, 0.4)
+  bracketShape.quadraticCurveTo(-0.5, 0.4, -0.5, 0.32)
+  bracketShape.closePath()
+  const handle = new THREE.Path()
+  handle.moveTo(-0.26, 0.1)
+  handle.lineTo(0.26, 0.1)
+  handle.lineTo(0.26, 0.28)
+  handle.lineTo(-0.26, 0.28)
+  handle.closePath()
+  bracketShape.holes.push(handle)
+  ;[-0.4, 0.37].forEach((x) => {
+    const slot = new THREE.Path()
+    slot.moveTo(x, 0.06)
+    slot.lineTo(x + 0.03, 0.06)
+    slot.lineTo(x + 0.03, 0.4)
+    slot.lineTo(x, 0.4)
+    slot.closePath()
+    bracketShape.holes.push(slot)
+  })
+  const bracket = new THREE.Mesh(
+    new THREE.ExtrudeGeometry(bracketShape, { depth: 0.02, bevelEnabled: false }),
+    bracketMetal
+  )
+  bracket.position.set(0, height / 2, -depth / 2 - 0.02)
+  group.add(bracket)
+
+  // Antena Wi-Fi saindo pela lateral esquerda
+  const antenna = new THREE.Mesh(new THREE.CylinderGeometry(0.035, 0.04, 0.2, 16), housing)
+  antenna.rotation.z = Math.PI / 2
+  antenna.position.set(-width / 2 - 0.1, height * 0.3, 0)
+  group.add(antenna)
+
+  // Quatro pares de cabos CC (um par por módulo), dois de cada lado
+  ;[-1, 1].forEach((side) => {
+    ;[0.08, -0.08, -0.24, -0.38].forEach((y, i) => {
+      const reach = i % 2 === 0 ? 0.48 : 0.3
+      const startX = side * (width / 2)
+      const endX = side * (width / 2 + reach)
+      group.add(
+        createCable(
+          [
+            [startX, y, 0],
+            [startX + side * 0.12, y - 0.02, 0],
+            [endX - side * 0.1, y - 0.05, 0],
+            [endX, y - 0.05, 0],
+          ],
+          cableMaterial,
+          0.018
+        )
+      )
+      const connector = createConnector(cableMaterial)
+      connector.scale.setScalar(0.7)
+      connector.rotation.z = -side * (Math.PI / 2)
+      connector.position.set(endX + side * 0.08, y - 0.05, 0)
+      group.add(connector)
+    })
+  })
+
+  // Cabo CA, mais grosso, com o conector de troncal
   group.add(
     createCable(
       [
-        [0, -0.72, 0],
-        [0.04, -1.0, 0.05],
-        [0.32, -1.24, -0.06],
-        [0.85, -1.33, 0],
+        [width / 2, height * 0.32, 0],
+        [width / 2 + 0.18, height * 0.32, 0],
+        [width / 2 + 0.38, height * 0.3, 0],
       ],
-      cableMaterial
+      cableMaterial,
+      0.03
     )
   )
+  const acConnector = new THREE.Group()
+  const acBody = new THREE.Mesh(new THREE.CylinderGeometry(0.075, 0.09, 0.3, 20), cableMaterial)
+  const acCollar = new THREE.Mesh(new THREE.CylinderGeometry(0.105, 0.105, 0.08, 20), cableMaterial)
+  acCollar.position.y = -0.1
+  acConnector.add(acBody, acCollar)
+  acConnector.rotation.z = -Math.PI / 2
+  acConnector.position.set(width / 2 + 0.52, height * 0.3, 0)
+  group.add(acConnector)
 
   return group
 }
 
-export default function ProductScene({ progress }: { progress: MotionValue<number> }) {
+export default function ProductScene({
+  progress,
+  variant,
+}: {
+  progress: MotionValue<number>
+  variant: PanelVariant
+}) {
   const containerRef = useRef<HTMLDivElement>(null)
+  const setVariantRef = useRef<((variant: PanelVariant) => void) | null>(null)
 
   useEffect(() => {
     const container = containerRef.current
@@ -500,7 +604,13 @@ export default function ProductScene({ progress }: { progress: MotionValue<numbe
     })
     intersectionObserver.observe(container)
 
+    setVariantRef.current = (variant) => {
+      panel.setVariant(variant)
+      draw(current)
+    }
+
     return () => {
+      setVariantRef.current = null
       cancelAnimationFrame(frame)
       unsubscribe()
       resizeObserver.disconnect()
@@ -513,12 +623,18 @@ export default function ProductScene({ progress }: { progress: MotionValue<numbe
         material.emissiveMap?.dispose()
         material.dispose()
       })
+      panel.extraMaterials.forEach((material) => material.dispose())
       environment.dispose()
       pmrem.dispose()
       renderer.dispose()
       renderer.domElement.remove()
     }
   }, [progress])
+
+  // Declarado depois da cena, para rodar quando ela já existe
+  useEffect(() => {
+    setVariantRef.current?.(variant)
+  }, [variant])
 
   return <div ref={containerRef} aria-hidden="true" className="absolute inset-0" />
 }
