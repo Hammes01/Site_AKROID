@@ -1,7 +1,6 @@
 'use client'
 
 import dynamic from 'next/dynamic'
-import Link from 'next/link'
 import {
   motion,
   useReducedMotion,
@@ -29,6 +28,10 @@ const VARIANTS: { id: PanelVariant; label: string; text: string }[] = [
   },
 ]
 
+// A animação termina com o inversor e o microinversor juntos; a comparação entre os dois
+// fica na seção seguinte (InverterCompare).
+const STORY_END = 0.76
+
 // `range`: pontos do scroll em que o texto aparece, fica e some.
 const CHAPTERS = [
   {
@@ -44,22 +47,14 @@ const CHAPTERS = [
     range: [0.3, 0.34, 0.45, 0.49],
   },
   {
-    eyebrow: 'Inversor',
+    eyebrow: 'Inversor e microinversor',
     title: 'O coração do sistema.',
-    text: 'Converte a corrente contínua dos módulos em corrente alternada, pronta para abastecer sua casa ou empresa.',
-    range: [0.55, 0.6, 0.74, 0.78],
-  },
-  {
-    eyebrow: 'Microinversor',
-    title: 'A conversão junto do módulo.',
-    text: 'Instalado junto aos módulos, faz com que a sombra em um deles pese menos no restante do sistema.',
-    range: [0.83, 0.88, 0.99, 1],
+    text: 'Os dois fazem a mesma função: convertem a corrente contínua dos módulos em corrente alternada, pronta para abastecer sua casa ou empresa.',
+    range: [0.55, 0.6, STORY_END, 0.8],
   },
 ]
 
 const LAYERS_CHAPTER = 1
-
-type Cta = { href: string; label: string }
 
 function VariantToggle({
   variant,
@@ -128,7 +123,7 @@ function Chapter({
   )
 }
 
-export default function ProductStory({ cta }: { cta: Cta }) {
+export default function ProductStory() {
   const ref = useRef<HTMLElement>(null)
   const shouldReduceMotion = useReducedMotion()
   const [mounted, setMounted] = useState(false)
@@ -144,6 +139,7 @@ export default function ProductStory({ cta }: { cta: Cta }) {
     target: ref,
     offset: ['start end', 'end end'],
   })
+  const progress = useTransform(scrollYProgress, [0, 1], [0, STORY_END])
 
   if (mounted && shouldReduceMotion) {
     return (
@@ -158,24 +154,19 @@ export default function ProductStory({ cta }: { cta: Cta }) {
               <p className="mt-4 text-slate-300">{chapter.text}</p>
             </div>
           ))}
-          <Link
-            href={cta.href}
-            className="justify-self-start rounded-full bg-brand-500 px-6 py-3 text-sm font-medium text-white hover:bg-brand-400"
-          >
-            {cta.label}
-          </Link>
         </div>
       </section>
     )
   }
 
   return (
-    <section ref={ref} data-dark-section className="relative h-[500svh] bg-slate-950">
+    // Altura proporcional ao trecho da animação que ficou (antes 500svh para ela inteira)
+    <section ref={ref} data-dark-section className="relative h-[380svh] bg-slate-950">
       <div className="sticky top-0 h-svh overflow-hidden bg-[radial-gradient(ellipse_at_70%_45%,#1e293b_0%,#020617_68%)] max-md:bg-[radial-gradient(ellipse_at_50%_35%,#1e293b_0%,#020617_70%)]">
         {/* Faz a emenda com o fim do vídeo, sem linha visível entre as seções */}
         <div className="absolute inset-x-0 top-0 h-40 bg-linear-to-b from-slate-950 to-transparent" />
 
-        <ProductScene progress={scrollYProgress} variant={variant} />
+        <ProductScene progress={progress} variant={variant} />
 
         {/* No celular, escurece a base para o texto nunca brigar com o objeto */}
         <div className="pointer-events-none absolute inset-x-0 bottom-0 h-1/2 bg-linear-to-t from-slate-950 via-slate-950/80 to-transparent md:hidden" />
@@ -186,22 +177,13 @@ export default function ProductStory({ cta }: { cta: Cta }) {
               <Chapter
                 key={chapter.title}
                 chapter={chapter}
-                progress={scrollYProgress}
+                progress={progress}
                 text={VARIANTS.find((option) => option.id === variant)!.text}
               >
                 <VariantToggle variant={variant} onChange={setVariant} />
               </Chapter>
             ) : (
-              <Chapter key={chapter.title} chapter={chapter} progress={scrollYProgress}>
-                {i === CHAPTERS.length - 1 && (
-                  <Link
-                    href={cta.href}
-                    className="inline-block rounded-full bg-brand-500 px-6 py-3 text-sm font-medium text-white hover:bg-brand-400"
-                  >
-                    {cta.label}
-                  </Link>
-                )}
-              </Chapter>
+              <Chapter key={chapter.title} chapter={chapter} progress={progress} />
             )
           )}
         </div>
