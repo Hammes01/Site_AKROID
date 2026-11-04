@@ -16,6 +16,7 @@ import {
   type SimState,
 } from '@/lib/inverter-sim'
 import type { RoofLayout } from './RoofScene'
+import FadeIn from './FadeIn'
 
 // O three.js é pesado: só carrega no navegador
 const RoofScene = dynamic(() => import('./RoofScene'), { ssr: false })
@@ -189,15 +190,16 @@ export default function InverterCompare({ cta, project }: { cta: Cta; project: F
   return (
     <section id="inversores" data-dark-section className="scroll-mt-20 bg-slate-950 py-24">
       <div className="mx-auto max-w-6xl px-6">
-        <div className="max-w-2xl">
+        <FadeIn className="max-w-2xl">
           <p className="text-sm font-medium text-brand-300">Microinversor · A conversão junto do módulo</p>
           <h2 className="mt-3 text-4xl font-semibold tracking-tight text-white md:text-6xl">Cada telhado é um caso.</h2>
           <p className="mt-5 text-lg text-slate-300">
             Instalado junto aos módulos, faz com que a sombra em um deles pese menos no restante do sistema. Compare
             com o inversor string: toque nas placas para fazer sombra e teste as situações abaixo.
           </p>
-        </div>
+        </FadeIn>
 
+        <FadeIn delay={100}>
         <div className="mt-10 flex flex-wrap items-center gap-3">
           <div role="group" aria-label="Tipo de inversor" className="flex rounded-full border border-white/15 p-1">
             {MODES.map((option) => (
@@ -216,8 +218,9 @@ export default function InverterCompare({ cta, project }: { cta: Cta; project: F
           </div>
         </div>
         <p className="mt-3 max-w-2xl text-slate-300">{mode.text}</p>
+        </FadeIn>
 
-        <div className="mt-6 grid gap-6 lg:grid-cols-[1fr_20rem]">
+        <FadeIn delay={200} className="mt-6 grid gap-6 lg:grid-cols-[1fr_20rem]">
           <div>
             <div
               ref={roofRef}
@@ -349,9 +352,9 @@ export default function InverterCompare({ cta, project }: { cta: Cta; project: F
               </li>
             </ul>
           </aside>
-        </div>
+        </FadeIn>
 
-        <div className="mt-12 grid gap-6 lg:grid-cols-[1fr_20rem]">
+        <FadeIn className="mt-12 grid gap-6 lg:grid-cols-[1fr_20rem]">
           <Quiz project={project} />
 
           <div className="rounded-2xl border border-white/10 p-6">
@@ -362,9 +365,9 @@ export default function InverterCompare({ cta, project }: { cta: Cta; project: F
             </p>
             <p className="mt-3 text-xs text-slate-400">As exigências dos corpos de bombeiros variam por estado.</p>
           </div>
-        </div>
+        </FadeIn>
 
-        <div className="mt-12 flex flex-wrap items-center justify-between gap-6 border-t border-white/10 pt-8">
+        <FadeIn className="mt-12 flex flex-wrap items-center justify-between gap-6 border-t border-white/10 pt-8">
           <p className="max-w-xl text-sm text-slate-400">
             Simulação ilustrativa. O dimensionamento real depende do projeto e do equipamento escolhido.
           </p>
@@ -374,7 +377,7 @@ export default function InverterCompare({ cta, project }: { cta: Cta; project: F
           >
             {cta.label}
           </Link>
-        </div>
+        </FadeIn>
       </div>
     </section>
   )

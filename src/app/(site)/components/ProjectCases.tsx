@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import FadeIn from './FadeIn'
 
 export type ProjectCase = {
   id: string
@@ -192,7 +193,7 @@ export default function ProjectCases({
   return (
     <section data-dark-section className="bg-slate-950 pt-16 pb-28">
       <div className="mx-auto max-w-6xl px-6">
-        <div className="flex flex-wrap items-end justify-between gap-4">
+        <FadeIn className="flex flex-wrap items-end justify-between gap-4">
           <h2 className="max-w-2xl text-4xl font-semibold tracking-tight text-white md:text-6xl">
             Quem já gera a própria energia.
           </h2>
@@ -201,10 +202,10 @@ export default function ProjectCases({
               Ver todos os projetos →
             </Link>
           )}
-        </div>
+        </FadeIn>
 
         {projects.length > 0 && (
-          <div className="mt-12 grid grid-cols-1 gap-6 md:grid-cols-2">
+          <FadeIn delay={150} className="mt-12 grid grid-cols-1 gap-6 md:grid-cols-2">
             {projects.map((project, i) => (
               <CaseCard
                 key={project.id}
@@ -214,10 +215,11 @@ export default function ProjectCases({
                 featured={i === 0}
               />
             ))}
-          </div>
+          </FadeIn>
         )}
 
         {quotes.length > 0 && (
+          <FadeIn>
           <ul className="mt-6 grid grid-cols-1 gap-6 md:grid-cols-3">
             {quotes.map((quote) => (
               <li key={quote.id} className="rounded-2xl border border-white/10 p-6">
@@ -228,6 +230,7 @@ export default function ProjectCases({
               </li>
             ))}
           </ul>
+          </FadeIn>
         )}
       </div>
     </section>
