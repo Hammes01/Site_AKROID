@@ -59,6 +59,12 @@ describe('simulate', () => {
     )
     assert.equal(simulate({ ...string, emergency: true }).total, 0)
   })
+
+  it('desligamento rápido sem emergência: explica o que faz', () => {
+    const result = simulate({ ...string, rapidShutdown: true })
+    assert.match(result.message, /Desligamento rápido instalado/)
+    assert.equal(result.total, NORMAL_WATTS * 8)
+  })
 })
 
 describe('recommend', () => {
