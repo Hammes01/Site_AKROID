@@ -105,6 +105,10 @@ function describe(state: SimState) {
       ? 'Emergência: o desligamento rápido apaga os cabos CC. No string, isso exige dispositivo adicional.'
       : 'Emergência: o inversor para, mas os cabos CC seguem energizados enquanto houver sol.'
   }
+  // Sem emergência o desligamento rápido não muda nada na tela, então explica o que ele faz
+  if (isString && state.rapidShutdown) {
+    return 'Desligamento rápido instalado. Ele age numa emergência: toque em "Emergência (bombeiros)" para ver os cabos CC apagarem.'
+  }
   if (state.equipmentFault) {
     return isString
       ? 'Falha no inversor: todo o sistema para até o conserto.'
