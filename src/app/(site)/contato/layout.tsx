@@ -1,5 +1,8 @@
 import type { Metadata } from 'next'
 
+// O formulário lê ?kit= do endereço, então a página é montada a cada visita, como antes
+export const dynamic = 'force-dynamic'
+
 export const metadata: Metadata = {
   title: 'Solicite um Orçamento',
   description:

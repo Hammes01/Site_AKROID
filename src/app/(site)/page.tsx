@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { createClient } from '@/lib/supabase/server'
+import { createPublicClient } from '@/lib/supabase/public'
 import { parseSalesConfig } from '@/lib/sales-config'
 import AboutSection from './components/AboutSection'
 import AnimatedHero from './components/AnimatedHero'
@@ -19,8 +19,11 @@ import Simulator from './components/Simulator'
 // Se o endereço mudar no admin, troque aqui; enquanto não achar, o link fica escondido.
 const QUIZ_PROJECT_SLUG = 'instalacao-antonio'
 
+// Fica em cache e se refaz no máximo a cada 5 minutos; salvar no admin atualiza na hora
+export const revalidate = 300
+
 export default async function HomePage() {
-  const supabase = await createClient()
+  const supabase = createPublicClient()
 
   const [
     { data: heroSetting },

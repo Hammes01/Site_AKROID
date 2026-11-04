@@ -2,6 +2,7 @@
 
 import { useRef, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
+import { revalidateHome } from '../../configuracoes/actions'
 
 type Media = {
   id: string
@@ -97,6 +98,8 @@ export default function ProjectMediaManager({
     }
 
     if (fileInputRef.current) fileInputRef.current.value = ''
+    // A home fica em cache: atualiza para as fotos novas aparecerem na hora
+    await revalidateHome()
     setBusy(false)
   }
 
@@ -117,6 +120,7 @@ export default function ProjectMediaManager({
     setMedia((current) =>
       current.map((item) => (item.id === id ? { ...item, phase: newPhase } : item))
     )
+    await revalidateHome()
   }
 
   async function handleDelete(item: Media) {
@@ -146,6 +150,7 @@ export default function ProjectMediaManager({
     }
 
     setMedia((current) => current.filter((other) => other.id !== item.id))
+    await revalidateHome()
     setBusy(false)
   }
 
