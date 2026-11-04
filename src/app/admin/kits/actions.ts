@@ -73,6 +73,7 @@ export async function createKit(formData: FormData) {
   }
 
   revalidatePath('/admin/kits')
+  revalidatePath('/', 'layout')
   redirect('/admin/kits')
 }
 
@@ -105,6 +106,7 @@ export async function updateKit(id: string, formData: FormData) {
   }
 
   revalidatePath('/admin/kits')
+  revalidatePath('/', 'layout')
   redirect('/admin/kits')
 }
 
@@ -122,7 +124,7 @@ export async function addKitItem(kitId: string, formData: FormData) {
   }
 
   revalidatePath(`/admin/kits/${kitId}`)
-  revalidatePath('/')
+  revalidatePath('/', 'layout')
 }
 
 export async function removeKitItem(kitId: string, itemId: string) {
@@ -135,7 +137,7 @@ export async function removeKitItem(kitId: string, itemId: string) {
   }
 
   revalidatePath(`/admin/kits/${kitId}`)
-  revalidatePath('/')
+  revalidatePath('/', 'layout')
 }
 
 export async function deleteKit(id: string) {
@@ -148,5 +150,6 @@ export async function deleteKit(id: string) {
   }
 
   revalidatePath('/admin/kits')
+  revalidatePath('/', 'layout')
   redirect('/admin/kits')
 }

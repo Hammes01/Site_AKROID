@@ -1,17 +1,22 @@
 import Link from 'next/link'
 import { PRIVACY_POLICY_PUBLISHED } from '@/lib/privacy'
-import { createClient } from '@/lib/supabase/server'
+import { createPublicClient } from '@/lib/supabase/public'
 import { parseSalesConfig } from '@/lib/sales-config'
 import Analytics from './components/Analytics'
 import SiteHeader from './components/SiteHeader'
 import WhatsAppButton from './components/WhatsAppButton'
+
+// Páginas sem dados por visitante (home, contato, privacidade) ficam em cache e se
+// refazem no máximo a cada 5 minutos. Salvar no admin atualiza na hora (revalidatePath).
+// As demais leem cookies e continuam sendo montadas a cada visita.
+export const revalidate = 300
 
 export default async function SiteLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
-  const supabase = await createClient()
+  const supabase = createPublicClient()
   const [{ data: org }, { data: salesSetting }] = await Promise.all([
     supabase
       .from('organizations')

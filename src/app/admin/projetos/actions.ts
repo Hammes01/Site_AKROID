@@ -79,6 +79,8 @@ export async function createProject(formData: FormData) {
   }
 
   revalidatePath('/admin/projetos')
+  // A home fica em cache: atualiza para o projeto aparecer na hora
+  revalidatePath('/', 'layout')
   redirect('/admin/projetos')
 }
 
@@ -117,6 +119,7 @@ export async function updateProject(id: string, formData: FormData) {
   }
 
   revalidatePath('/admin/projetos')
+  revalidatePath('/', 'layout')
   redirect('/admin/projetos')
 }
 
@@ -144,7 +147,7 @@ export async function saveProjectResults(id: string, formData: FormData) {
   }
 
   revalidatePath(`/admin/projetos/${id}`)
-  revalidatePath('/')
+  revalidatePath('/', 'layout')
 }
 
 export async function deleteProject(id: string) {
@@ -157,5 +160,6 @@ export async function deleteProject(id: string) {
   }
 
   revalidatePath('/admin/projetos')
+  revalidatePath('/', 'layout')
   redirect('/admin/projetos')
 }

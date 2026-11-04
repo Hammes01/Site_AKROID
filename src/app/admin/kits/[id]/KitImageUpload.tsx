@@ -2,6 +2,7 @@
 
 import { useRef, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
+import { revalidateHome } from '../../configuracoes/actions'
 
 const EXTENSIONS: Record<string, string> = {
   'image/jpeg': 'jpg',
@@ -37,6 +38,8 @@ export default function KitImageUpload({
       return false
     }
     setUrl(next)
+    // A home fica em cache: atualiza para a imagem nova aparecer na hora
+    await revalidateHome()
     return true
   }
 
