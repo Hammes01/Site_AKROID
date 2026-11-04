@@ -2,7 +2,7 @@
 
 import dynamic from 'next/dynamic'
 import Link from 'next/link'
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import {
   FAULTY_PANEL,
   INITIAL_STATE,
@@ -154,6 +154,25 @@ export default function InverterCompare({ cta, project }: { cta: Cta; project: F
   const [state, setState] = useState<SimState>(INITIAL_STATE)
   const [layout, setLayout] = useState<RoofLayout | null>(null)
   const sim = useMemo(() => simulate(state), [state])
+  // O telhado 3D só é montado quando a seção chega perto da tela: ela fica bem abaixo
+  // da abertura, e montar antes só atrasaria o carregamento
+  const roofRef = useRef<HTMLDivElement>(null)
+  const [roofNear, setRoofNear] = useState(false)
+
+  useEffect(() => {
+    const roof = roofRef.current
+    if (!roof) return
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (!entry.isIntersecting) return
+        setRoofNear(true)
+        observer.disconnect()
+      },
+      { rootMargin: '600px 0px' }
+    )
+    observer.observe(roof)
+    return () => observer.disconnect()
+  }, [])
   const isString = state.mode === 'string'
   const mode = MODES.find((option) => option.id === state.mode)!
 
@@ -200,8 +219,11 @@ export default function InverterCompare({ cta, project }: { cta: Cta; project: F
 
         <div className="mt-6 grid gap-6 lg:grid-cols-[1fr_20rem]">
           <div>
-            <div className="relative aspect-square overflow-hidden sm:aspect-[4/3] rounded-2xl bg-[radial-gradient(ellipse_at_50%_30%,#1e293b_0%,#020617_75%)] md:aspect-[16/10]">
-              <RoofScene mode={state.mode} sim={sim} onLayout={setLayout} />
+            <div
+              ref={roofRef}
+              className="relative aspect-square overflow-hidden sm:aspect-[4/3] rounded-2xl bg-[radial-gradient(ellipse_at_50%_30%,#1e293b_0%,#020617_75%)] md:aspect-[16/10]"
+            >
+              {roofNear && <RoofScene mode={state.mode} sim={sim} onLayout={setLayout} />}
 
               {/* Toque direto na placa. Pelo teclado, use a lista de placas ao lado. */}
               {layout && (
@@ -298,17 +320,16 @@ export default function InverterCompare({ cta, project }: { cta: Cta; project: F
                   <button
                     type="button"
                     aria-pressed={panel.shaded}
-                    aria-label={`Placa ${panel.index + 1}: ${watts(panel.watts)}, ${STATUS_STYLE[panel.status].label.toLowerCase()}. ${
-                      panel.shaded ? 'Tirar a sombra' : 'Fazer sombra'
-                    }`}
                     onClick={() => toggleShade(panel.index)}
                     className={`w-full rounded-lg border px-1 py-2 text-center focus-visible:outline-2 focus-visible:outline-brand-300 ${
                       panel.shaded ? 'border-amber-400/60 bg-amber-400/10' : 'border-white/10 hover:border-white/30'
                     }`}
                   >
-                    <span className="block text-[11px] text-slate-400">Placa {panel.index + 1}</span>
+                    {/* O nome lido pelo leitor de tela é o próprio texto visível, mais o estado */}
+                    <span className="block text-[11px] text-slate-400">Placa {panel.index + 1}</span>{' '}
                     <span className={`block text-sm font-semibold tabular-nums ${STATUS_STYLE[panel.status].text}`}>
                       {panel.watts}
+                      <span className="sr-only"> W, {STATUS_STYLE[panel.status].label.toLowerCase()}</span>
                     </span>
                   </button>
                 </li>

@@ -212,7 +212,12 @@ export default function ProductScene({
     let frame = 0
     let visible = false
 
+    // Só desenha depois que os shaders estiverem prontos (ver compileAsync abaixo)
+    let compiled = false
+    let disposed = false
+
     const draw = (p: number) => {
+      if (!compiled) return
       const wide = camera.aspect > 1.1
       const viewHeight = 2 * camera.position.z * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2))
       const viewWidth = viewHeight * camera.aspect
@@ -344,7 +349,21 @@ export default function ProductScene({
       draw(current)
     }
 
+    // Prepara os shaders de todas as peças de uma vez, em segundo plano quando o
+    // navegador permite. Sem isso, o primeiro quadro trava a página e o inversor
+    // ainda engasga a rolagem quando aparece pela primeira vez.
+    ;[panel.group, inverter, microinverter].forEach((object) => (object.visible = true))
+    renderer
+      .compileAsync(scene, camera)
+      .catch(() => {})
+      .finally(() => {
+        if (disposed) return
+        compiled = true
+        draw(current)
+      })
+
     return () => {
+      disposed = true
       setVariantRef.current = null
       cancelAnimationFrame(frame)
       unsubscribe()

@@ -48,43 +48,52 @@ export default function ContatoPage() {
           )}
 
           <div>
-            <label className="mb-1 block text-sm text-slate-700">
+            <label htmlFor="name" className="mb-1 block text-sm text-slate-700">
               Nome *
             </label>
             <input
+              id="name"
               name="name"
               required
+              autoComplete="name"
               className="w-full rounded-md border border-slate-300 px-3 py-2 outline-none focus:border-slate-500"
             />
           </div>
 
           <div>
-            <label className="mb-1 block text-sm text-slate-700">
+            <label htmlFor="whatsapp" className="mb-1 block text-sm text-slate-700">
               WhatsApp *
             </label>
+            {/* type="tel" abre o teclado numérico no celular */}
             <input
+              id="whatsapp"
               name="whatsapp"
+              type="tel"
               required
+              autoComplete="tel"
               placeholder="(66) 99999-9999"
               className="w-full rounded-md border border-slate-300 px-3 py-2 outline-none focus:border-slate-500"
             />
           </div>
 
           <div>
-            <label className="mb-1 block text-sm text-slate-700">
+            <label htmlFor="city" className="mb-1 block text-sm text-slate-700">
               Cidade
             </label>
             <input
+              id="city"
               name="city"
+              autoComplete="address-level2"
               className="w-full rounded-md border border-slate-300 px-3 py-2 outline-none focus:border-slate-500"
             />
           </div>
 
           <div>
-            <label className="mb-1 block text-sm text-slate-700">
+            <label htmlFor="project_type" className="mb-1 block text-sm text-slate-700">
               Tipo de projeto
             </label>
             <select
+              id="project_type"
               name="project_type"
               defaultValue={kitInteresse ? 'residencial' : ''}
               className="w-full rounded-md border border-slate-300 px-3 py-2 outline-none focus:border-slate-500"

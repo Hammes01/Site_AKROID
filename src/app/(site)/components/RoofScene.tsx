@@ -353,7 +353,12 @@ export default function RoofScene({
       })
     }
 
-    const render = () => renderer.render(scene, camera)
+    // Só desenha depois que os shaders estiverem prontos (ver compileAsync abaixo)
+    let compiled = false
+    let disposed = false
+    const render = () => {
+      if (compiled) renderer.render(scene, camera)
+    }
 
     updateRef.current = (mode, sim) => {
       stringParts.visible = mode === 'string'
@@ -391,7 +396,21 @@ export default function RoofScene({
     resizeObserver.observe(container)
     resize()
 
+    // Prepara os shaders dos dois modos de uma vez, em segundo plano quando o navegador
+    // permite, para a primeira troca de modo não engasgar. O estado certo de cada peça
+    // é aplicado logo depois, pela primeira chamada de updateRef.
+    stringParts.visible = microParts.visible = true
+    renderer
+      .compileAsync(scene, camera)
+      .catch(() => {})
+      .finally(() => {
+        if (disposed) return
+        compiled = true
+        render()
+      })
+
     return () => {
+      disposed = true
       updateRef.current = null
       resizeObserver.disconnect()
       scene.traverse((object) => {
