@@ -68,6 +68,9 @@ export default function AnimatedHero({
       : {}
   const textStyle =
     mounted && !shouldReduceMotion ? { opacity: textOpacity, y: textY } : {}
+  // A seta some logo no começo da rolagem: depois disso ela já cumpriu o papel
+  const cueOpacity = useTransform(scrollYProgress, [0, 0.12], [1, 0])
+  const cueVisibility = useTransform(cueOpacity, (value) => (value > 0.05 ? 'visible' : 'hidden'))
 
   return (
     <section
@@ -140,6 +143,32 @@ export default function AnimatedHero({
           </Link>
         </div>
       </motion.div>
+
+      {/* Convite para rolar: serve para mouse, trackpad e dedo. Clicar também desce. */}
+      <motion.button
+        type="button"
+        style={{ opacity: cueOpacity, visibility: cueVisibility }}
+        onClick={() =>
+          window.scrollBy({ top: window.innerHeight * 0.9, behavior: shouldReduceMotion ? 'auto' : 'smooth' })
+        }
+        className={`absolute bottom-6 left-1/2 z-10 flex -translate-x-1/2 flex-col items-center gap-1 rounded-full px-4 py-2 text-sm font-medium focus-visible:outline-2 focus-visible:outline-brand-300 md:bottom-8 ${
+          videoUrl ? 'text-white/85 hover:text-white' : 'text-slate-600 hover:text-slate-900'
+        }`}
+      >
+        Role para ver mais
+        <svg
+          aria-hidden="true"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          className="h-8 w-8 motion-safe:animate-bounce"
+        >
+          <path d="m6 9 6 6 6-6" />
+        </svg>
+      </motion.button>
     </section>
   )
 }
