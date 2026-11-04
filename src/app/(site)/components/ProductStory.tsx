@@ -128,10 +128,26 @@ export default function ProductStory() {
   const shouldReduceMotion = useReducedMotion()
   const [mounted, setMounted] = useState(false)
   const [variant, setVariant] = useState<PanelVariant>('vidro')
+  // Montar a cena 3D é pesado: espera a página ficar pronta (ou a primeira rolagem),
+  // para não travar o toque e o vídeo do topo logo na abertura
+  const [sceneReady, setSceneReady] = useState(false)
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- necessário para evitar mismatch de hidratação entre servidor e cliente
     setMounted(true)
+  }, [])
+
+  useEffect(() => {
+    const start = () => setSceneReady(true)
+    const idle = window.requestIdleCallback
+      ? window.requestIdleCallback(start, { timeout: 2500 })
+      : window.setTimeout(start, 1500)
+    window.addEventListener('scroll', start, { once: true, passive: true })
+    return () => {
+      if (window.cancelIdleCallback) window.cancelIdleCallback(idle)
+      else window.clearTimeout(idle)
+      window.removeEventListener('scroll', start)
+    }
   }, [])
 
   // Começa quando a seção entra por baixo da tela, para o objeto já subir junto
@@ -166,7 +182,7 @@ export default function ProductStory() {
         {/* Faz a emenda com o fim do vídeo, sem linha visível entre as seções */}
         <div className="absolute inset-x-0 top-0 h-40 bg-linear-to-b from-slate-950 to-transparent" />
 
-        <ProductScene progress={progress} variant={variant} />
+        {sceneReady && <ProductScene progress={progress} variant={variant} />}
 
         {/* No celular, escurece a base para o texto nunca brigar com o objeto */}
         <div className="pointer-events-none absolute inset-x-0 bottom-0 h-1/2 bg-linear-to-t from-slate-950 via-slate-950/80 to-transparent md:hidden" />
